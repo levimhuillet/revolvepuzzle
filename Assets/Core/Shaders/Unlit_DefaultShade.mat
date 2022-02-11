@@ -20,22 +20,22 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _FlameTex:
-        m_Texture: {fileID: 2800000, guid: 2ec6e1532acb1254f9f3797b5d82db44, type: 3}
-        m_Scale: {x: 5, y: 5}
+        m_Texture: {fileID: 2800000, guid: d2498599e429c8f4f9612e46a0800566, type: 3}
+        m_Scale: {x: 3, y: 3}
         m_Offset: {x: 0, y: 0}
     - _FrostTex:
-        m_Texture: {fileID: 2800000, guid: a8d38587573a5f34c91c4ae0fbd8bfef, type: 3}
-        m_Scale: {x: 5, y: 5}
+        m_Texture: {fileID: 2800000, guid: 15a2774febcc3fa47a1942a5845e9ee4, type: 3}
+        m_Scale: {x: 3, y: 3}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: d1118dda59970a2449ee890fa247c4c5, type: 3}
-        m_Scale: {x: 5, y: 5}
+        m_Scale: {x: 3, y: 3}
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _OutlineWidth: 2
     - _Radius: 100
-    - _RevolveDir: 0
-    - _TowerRotation: 0.63911265
+    - _RevolveDir: 2
+    - _TowerRotation: 14.766127
     - _VisibleDistance: 20
     m_Colors:
     - _FlameColour: {r: 1, g: 0, b: 0, a: 1}
