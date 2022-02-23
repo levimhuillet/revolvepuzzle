@@ -28,5 +28,7 @@ public class OuterSphere : MonoBehaviour
         }
         renderer.sharedMaterial.SetInt("_RevolveDir", revolveDirInt);
         renderer.sharedMaterial.SetFloat("_Radius", RevolvePillar.instance.gameObject.transform.localScale.y);
+        renderer.sharedMaterial.SetInt("_NumCycles", centralCam.GetNumCycles());
+        renderer.sharedMaterial.SetInt("_PassedPrelim", centralCam.GetPassedPrelim());
     }
 }

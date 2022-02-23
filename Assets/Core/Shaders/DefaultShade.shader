@@ -7,8 +7,10 @@ Shader "Unlit/DefaultShade" {
 		_FrostTex("Frost (RGB)", 2D) = "white" {} // Regular object texture 
 		_FlameTex("Flame (RGB)", 2D) = "white" {} // Regular object texture 
 		_TowerRotation("Tower Rotation", float) = 0 // The rotation of the tower - will be set by script
-		_RevolveDir("Revolve Dir", int) = 0 // Whether moving Clockwise (0) or Anticlockwise (1) around the tower - will be set by script
+		_RevolveDir("Revolve Dir", int) = 0 // Whether moving Clockwise (1) or Anticlockwise (2) around the tower - will be set by script
 		_Radius("Radius", float) = 0 // radius of the sphere
+		_NumCycles("Num Cycles", int) = 0 // times around
+		_PassedPrelim("Passed Prelim", int) = 0 // 1 if in zone, 0 if not
 	}
 		CGINCLUDE
 		#pragma vertex vert
@@ -33,6 +35,8 @@ Shader "Unlit/DefaultShade" {
 		uniform float _TowerRotation;
 		uniform int _RevolveDir;
 		uniform float _Radius;
+		uniform int _NumCycles;
+		uniform int _PassedPrelim;
 		const float pi = 3.141592653589793238462;
 
 		float calcDistMarginClockwise(vertexOutput input, float4 startPoint, float adjustedRadius) {
@@ -215,144 +219,154 @@ Shader "Unlit/DefaultShade" {
 			 // FRAGMENT SHADER
 			float4 frag(vertexOutput input) : COLOR
 			{
-				// Calculate segments based on tower rotation
-
-				// Q1
-				if (_TowerRotation > 0 && _TowerRotation < 90)
+				if (_NumCycles > 0 || (_PassedPrelim == 1 && (_TowerRotation < 0.5f || _TowerRotation > 359.5f)))
 				{
-					// Clockwise
+					// solidly in Frost
 					if (_RevolveDir == 1)
 					{
-						float4 fillAttempt;
-						for (int i = 1; i <= 1; i = i + 1) {
-							fillAttempt = tryFillQuadrantClockwise(input, i);
-							if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
-							{
-								return fillAttempt;
-							}
-						}
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
+						return tex2D(_FlameTex, float4(input.tex)); // Flame Color
 					}
-					//Anticlockwise
-					else if (_RevolveDir == 2) {
-						float4 fillAttempt;
-						for (int i = 4; i >= 1; i = i - 1) {
-							fillAttempt = tryFillQuadrantAnticlockwise(input, i);
-							if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
-							{
-								return fillAttempt;
-							}
-						}
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
-					}
-					// Neither
-					else {
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
-					}
-				}
-				// Q2
-				else if (_TowerRotation > 90 && _TowerRotation < 180)
-				{
-					// Clockwise
-					if (_RevolveDir == 1)
+					// solidly in Flame
+					else
 					{
-						float4 fillAttempt;
-						for (int i = 1; i <= 2; i = i + 1) {
-							fillAttempt = tryFillQuadrantClockwise(input, i);
-							if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
-							{
-								return fillAttempt;
-							}
-						}
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
-					}
-					//Anticlockwise
-					else if (_RevolveDir == 2) {
-						float4 fillAttempt;
-						for (int i = 4; i >= 2; i = i - 1) {
-							fillAttempt = tryFillQuadrantAnticlockwise(input, i);
-							if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
-							{
-								return fillAttempt;
-							}
-						}
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
-					}
-					// Neither
-					else {
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
+						return tex2D(_FrostTex, float4(input.tex)); // Frost Color
 					}
 				}
-				// Q3
-				else if (_TowerRotation > 180 && _TowerRotation < 270)
-				{
-					// Clockwise
-					if (_RevolveDir == 1)
-					{
-						float4 fillAttempt;
-						for (int i = 1; i <= 3; i = i + 1) {
-							fillAttempt = tryFillQuadrantClockwise(input, i);
-							if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
-							{
-								return fillAttempt;
-							}
-						}
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
-					}
-					//Anticlockwise
-					else if (_RevolveDir == 2) {
-						float4 fillAttempt;
-						for (int i = 4; i >= 3; i = i - 1) {
-							fillAttempt = tryFillQuadrantAnticlockwise(input, i);
-							if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
-							{
-								return fillAttempt;
-							}
-						}
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
-					}
-					// Neither
-					else {
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
-					}
-				}
-				// Q4
-				else if (_TowerRotation > 270 && _TowerRotation < 360)
-				{
-					// Clockwise
-					if (_RevolveDir == 1)
-					{
-						float4 fillAttempt;
-						for (int i = 1; i <= 4; i = i + 1) {
-							fillAttempt = tryFillQuadrantClockwise(input, i);
-							if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
-							{
-								return fillAttempt;
-							}
-						}
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
-					}
-					//Anticlockwise
-					else if (_RevolveDir == 2) {
-						float4 fillAttempt;
-						for (int i = 4; i >= 4; i = i - 1) {
-							fillAttempt = tryFillQuadrantAnticlockwise(input, i);
-							if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
-							{
-								return fillAttempt;
-							}
-						}
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
-					}
-					// Neither
-					else {
-						return tex2D(_MainTex, float4(input.tex)); // Base Color
-					}
-				}
-				// Edge cases
 				else {
-					return tex2D(_MainTex, float4(input.tex)); // Base Color
+
+					// Else calculate segments based on tower rotation
+
+					// Q1
+					float4 fillAttempt = float4(0.0, 0.0, 0.0, 0.0);
+					if (_TowerRotation >= 0 && _TowerRotation < 90)
+					{
+						// Clockwise
+						if (_RevolveDir == 1)
+						{
+							for (int i = 1; i <= 1; i = i + 1) {
+								fillAttempt = tryFillQuadrantClockwise(input, i);
+								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
+								{
+									return fillAttempt;
+								}
+							}
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+						//Anticlockwise
+						else if (_RevolveDir == 2) {
+							for (int i = 4; i >= 1; i = i - 1) {
+								fillAttempt = tryFillQuadrantAnticlockwise(input, i);
+								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
+								{
+									return fillAttempt;
+								}
+							}
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+						// Neither
+						else {
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+					}
+					// Q2
+					else if (_TowerRotation >= 90 && _TowerRotation < 180)
+					{
+						// Clockwise
+						if (_RevolveDir == 1)
+						{
+							for (int i = 1; i <= 2; i = i + 1) {
+								fillAttempt = tryFillQuadrantClockwise(input, i);
+								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
+								{
+									return fillAttempt;
+								}
+							}
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+						//Anticlockwise
+						else if (_RevolveDir == 2) {
+							for (int i = 4; i >= 2; i = i - 1) {
+								fillAttempt = tryFillQuadrantAnticlockwise(input, i);
+								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
+								{
+									return fillAttempt;
+								}
+							}
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+						// Neither
+						else {
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+					}
+					// Q3
+					else if (_TowerRotation >= 180 && _TowerRotation < 270)
+					{
+						// Clockwise
+						if (_RevolveDir == 1)
+						{
+							for (int i = 1; i <= 3; i = i + 1) {
+								fillAttempt = tryFillQuadrantClockwise(input, i);
+								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
+								{
+									return fillAttempt;
+								}
+							}
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+						//Anticlockwise
+						else if (_RevolveDir == 2) {
+							for (int i = 4; i >= 3; i = i - 1) {
+								fillAttempt = tryFillQuadrantAnticlockwise(input, i);
+								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
+								{
+									return fillAttempt;
+								}
+							}
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+						// Neither
+						else {
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+					}
+					// Q4
+					else if (_TowerRotation >= 270 && _TowerRotation <= 360)
+					{
+						// Clockwise
+						if (_RevolveDir == 1)
+						{
+							for (int i = 1; i <= 4; i = i + 1) {
+								fillAttempt = tryFillQuadrantClockwise(input, i);
+								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
+								{
+									return fillAttempt;
+								}
+							}
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+						//Anticlockwise
+						else if (_RevolveDir == 2) {
+							for (int i = 4; i >= 4; i = i - 1) {
+								fillAttempt = tryFillQuadrantAnticlockwise(input, i);
+								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
+								{
+									return fillAttempt;
+								}
+							}
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+						// Neither
+						else {
+							return tex2D(_MainTex, float4(input.tex)); // Base Color
+						}
+					}
+					// Edge cases
+					else {
+						return tex2D(_MainTex, float4(input.tex)); // Base Color
+					}
 				}
+
 			}
 
 

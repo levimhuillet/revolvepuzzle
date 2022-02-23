@@ -24,9 +24,10 @@ public class CentralCamera : MonoBehaviour {
 
     private List<Camera> m_cams;
 
-    private float m_genericThreshold = 5; //50f;
-    private int m_newCycle;
+    private float m_genericThreshold = .5f; //50f;
+    private float m_prevAngle; // angle during the previous frame
     private int m_completedCycles;
+    private bool m_passedPrelimZone;
 
     private State m_enteringState;
     private EnterType m_enterType;
@@ -40,8 +41,8 @@ public class CentralCamera : MonoBehaviour {
         m_cams.Add(m_frostCam);
         m_cams.Add(m_flameCam);
 
-        m_newCycle = 0;
         m_completedCycles = 0;
+        m_passedPrelimZone = false;
     }
 
     // Update is called once per frame
@@ -54,63 +55,147 @@ public class CentralCamera : MonoBehaviour {
         }
 
         float angle = RevolvePillar.instance.GetEulerRotation();
+        UpdateCycleState(angle);
+
+        Debug.Log("Current cycles: " + m_completedCycles);
+
+        m_prevAngle = angle;
+    }
+
+    private void UpdateCycleState(float angle) {
+        float clockwiseInner = m_genericThreshold * 2;
+        float clockwiseOuter = m_genericThreshold;
+        float aclockwiseInner = 360 - m_genericThreshold * 2;
+        float aclockwiseOuter = 360 - m_genericThreshold;
+
+        // Check if enter from generic
         if (m_enteringState == State.Generic) {
-            if (angle < 360 - m_genericThreshold && angle > 360 - m_genericThreshold * 2) {
-                Debug.Log("entering frost");
+            if (angle <= aclockwiseOuter && angle >= aclockwiseInner && m_prevAngle > aclockwiseOuter) {
                 EnterFrost();
-                m_enteringState = State.Frost;
-                m_enterType = EnterType.Anticlockwise;
+                return;
             }
-            else if (angle > m_genericThreshold && angle < m_genericThreshold * 2) {
-                Debug.Log("entering flame");
+            else if (angle >= clockwiseOuter && angle <= clockwiseInner && m_prevAngle < clockwiseOuter) {
                 EnterFlame();
-                m_enteringState = State.Flame;
-                m_enterType = EnterType.Clockwise;
+                return;
             }
         }
-        else {
-            // starting new cycle but have not yet passed into new loop threshold
-            if ((angle > 360 - m_genericThreshold + 1)
-                && (angle < m_genericThreshold - 1)
-                && m_enterType != EnterType.None
-                && m_newCycle != m_completedCycles + 1) {
-                m_newCycle = m_completedCycles;
-                m_newCycle++;
-            }
-            else {
-                if ((angle < m_genericThreshold && m_enterType == EnterType.Clockwise && m_newCycle != m_completedCycles + 1)
-                    || (angle > 360 - m_genericThreshold && m_enterType == EnterType.Anticlockwise && m_newCycle != m_completedCycles + 1)) {
-                    // TODO: keep track of cycles and preserve realm when going around pillar
-                        // decrement m_new cycle when reversing in loop threshold
-                        // once past the new loop threshold, increment completed cycles
-                    Debug.Log("exiting all");
-                    m_completedCycles++;
-                    m_enteringState = State.Generic;
-                    m_enterType = EnterType.None;
+
+        // Check if exiting is a possibility
+        if (m_completedCycles == 0 && !m_passedPrelimZone) {
+            // Check if exit from Anticlockwise (Frost)
+            if (m_enterType == EnterType.Anticlockwise) {
+                if (angle > aclockwiseOuter && m_prevAngle <= aclockwiseOuter && m_prevAngle >= aclockwiseInner) {
+                    Debug.Log("exiting Frost");
                     ExitRealms();
+                    return;
+                }
+            }
+            // Check if exit from Clockwise (Flame)
+            else if (m_enterType == EnterType.Clockwise) {
+                if (angle < clockwiseOuter && m_prevAngle >= clockwiseOuter && m_prevAngle <= clockwiseInner) {
+                    Debug.Log("exiting Flame");
+                    ExitRealms();
+                    return;
                 }
             }
         }
 
+        // Check if furthering loops
+        if (m_enteringState != State.Generic) {
+            // within Frost:
+            if (m_enterType == EnterType.Anticlockwise) {
+                // check if entered threshold zone
+                if (angle <= aclockwiseOuter && angle >= aclockwiseInner) {
+                    // check if entered from enter (versus staying within zone)
+                    if (m_prevAngle > aclockwiseOuter) {
+                        // enter
+                        m_completedCycles++;
+                        m_passedPrelimZone = false;
+                        return;
+                    }
+                    // else remain within zone
+                }
+                else if (angle > aclockwiseOuter && m_prevAngle <= aclockwiseOuter && m_prevAngle >= aclockwiseInner) {
+                    m_completedCycles--;
+                    m_passedPrelimZone = true;
+                    return;
+                }
+                // check if entered prelim zone
+                else if (angle <= clockwiseInner && angle >= clockwiseOuter) {
+                    m_passedPrelimZone = true;
+                }
+                else if (angle > clockwiseInner && angle < 180) {
+                    m_passedPrelimZone = false;
+                }
+            }
+            // within Flame:
+            else if (m_enterType == EnterType.Clockwise) {
+                // check if entered threshold zone
+                if (angle >= clockwiseOuter && angle <= clockwiseInner) {
+                    // check if entered from enter (versus staying within zone)
+                    if (m_prevAngle < clockwiseOuter) {
+                        // enter
+                        m_completedCycles++;
+                        m_passedPrelimZone = false;
+                        return;
+                    }
+                    // else remain within zone
+                }
+                else if (angle < clockwiseOuter && m_prevAngle >= clockwiseOuter && m_prevAngle <= clockwiseInner) {
+                    m_completedCycles--;
+                    m_passedPrelimZone = true;
+                    return;
+                }
+                // check if entered prelim zone
+                else if (angle >= aclockwiseInner && angle <= aclockwiseOuter) {
+                    m_passedPrelimZone = true;
+                }
+                else if (angle < aclockwiseInner && angle > 180) {
+                    m_passedPrelimZone = false;
+                }
+            }
+        }
     }
 
     private void EnterFrost() {
+        m_enteringState = State.Frost;
+        m_enterType = EnterType.Anticlockwise;
+
         m_frostCam.gameObject.SetActive(true);
         m_genericCam.gameObject.SetActive(false);
     }
 
     private void ExitRealms() {
+        m_enteringState = State.Generic;
+        m_enterType = EnterType.None;
+
         m_genericCam.gameObject.SetActive(true);
         m_frostCam.gameObject.SetActive(false);
         m_flameCam.gameObject.SetActive(false);
     }
 
     private void EnterFlame() {
+        m_enteringState = State.Flame;
+        m_enterType = EnterType.Clockwise;
+
         m_flameCam.gameObject.SetActive(true);
         m_genericCam.gameObject.SetActive(false);
     }
 
     public EnterType GetRevolveDir() {
         return m_enterType;
+    }
+
+    public int GetNumCycles() {
+        return m_completedCycles;
+    }
+
+    public int GetPassedPrelim() {
+        if (m_passedPrelimZone) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
     }
 }
