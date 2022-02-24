@@ -22,6 +22,9 @@ public class CentralCamera : MonoBehaviour {
     [SerializeField]
     private Camera m_flameCam;
 
+    [SerializeField]
+    private GameObject m_frostMasker, m_flameMasker;
+
     private List<Camera> m_cams;
 
     private float m_genericThreshold = .5f; //50f;
@@ -43,6 +46,9 @@ public class CentralCamera : MonoBehaviour {
 
         m_completedCycles = 0;
         m_passedPrelimZone = false;
+
+        m_frostMasker.SetActive(false);
+        m_flameMasker.SetActive(false);
     }
 
     // Update is called once per frame
@@ -124,8 +130,16 @@ public class CentralCamera : MonoBehaviour {
                 else if (angle <= clockwiseInner && angle >= clockwiseOuter) {
                     m_passedPrelimZone = true;
                 }
-                else if (angle > clockwiseInner && angle < 180) {
+                else if (angle > clockwiseInner && angle < 90) {
                     m_passedPrelimZone = false;
+                }
+
+                // Invisible Masker
+                if (!m_frostMasker.activeSelf && angle > 90  && angle < 95 && m_completedCycles == 0) {
+                    m_frostMasker.SetActive(true);
+                }
+                else if (m_frostMasker.activeSelf && angle < 90 && angle > 85 && m_completedCycles == 0) {
+                    m_frostMasker.SetActive(false);
                 }
             }
             // within Flame:
@@ -150,8 +164,16 @@ public class CentralCamera : MonoBehaviour {
                 else if (angle >= aclockwiseInner && angle <= aclockwiseOuter) {
                     m_passedPrelimZone = true;
                 }
-                else if (angle < aclockwiseInner && angle > 180) {
+                else if (angle < aclockwiseInner && angle > 270) {
                     m_passedPrelimZone = false;
+                }
+
+                // Invisible Masker
+                if (!m_flameMasker.activeSelf && angle < 270 && angle > 265 && m_completedCycles == 0) {
+                    m_flameMasker.SetActive(true);
+                }
+                else if (m_flameMasker.activeSelf && angle > 270 && angle < 275 && m_completedCycles == 0) {
+                    m_flameMasker.SetActive(false);
                 }
             }
         }
@@ -163,6 +185,8 @@ public class CentralCamera : MonoBehaviour {
 
         m_frostCam.gameObject.SetActive(true);
         m_genericCam.gameObject.SetActive(false);
+
+        m_frostMasker.SetActive(true);
     }
 
     private void ExitRealms() {
@@ -172,6 +196,9 @@ public class CentralCamera : MonoBehaviour {
         m_genericCam.gameObject.SetActive(true);
         m_frostCam.gameObject.SetActive(false);
         m_flameCam.gameObject.SetActive(false);
+
+        m_frostMasker.SetActive(false);
+        m_flameMasker.SetActive(false);
     }
 
     private void EnterFlame() {
@@ -180,6 +207,8 @@ public class CentralCamera : MonoBehaviour {
 
         m_flameCam.gameObject.SetActive(true);
         m_genericCam.gameObject.SetActive(false);
+
+        m_flameMasker.SetActive(true);
     }
 
     public EnterType GetRevolveDir() {
