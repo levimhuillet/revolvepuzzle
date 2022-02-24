@@ -39,33 +39,36 @@ Shader "Unlit/DefaultShade" {
 		uniform int _PassedPrelim;
 		const float pi = 3.141592653589793238462;
 
-		float calcDistMarginClockwise(vertexOutput input, float4 startPoint, float adjustedRadius) {
-			float endX = adjustedRadius * -sin(radians(_TowerRotation / 2.0));
-			float endZ = adjustedRadius * -cos(radians(_TowerRotation / 2.0));
+		float calcDistMarginClockwise(vertexOutput input, float4 startPoint, float adjustedRadius, float adjustedRotation) {
+			float endX = adjustedRadius * -sin(radians(adjustedRotation));
+			float endZ = adjustedRadius * -cos(radians(adjustedRotation));
 			float4 maxEndpoint = float4(endX, input.position_in_world_space.y, endZ, 1.0);
-			float maxDist = sqrt((endX) * (endX)+(endZ + adjustedRadius) * (endZ + adjustedRadius));
-			float vertDist = sqrt((endX - input.position_in_world_space.x) * (endX - input.position_in_world_space.x) + (endZ - input.position_in_world_space.z) * (endZ - input.position_in_world_space.z));
+			//float maxDist = sqrt((endX) * (endX)+(endZ + adjustedRadius) * (endZ + adjustedRadius));
+			//float vertDist = sqrt((endX - input.position_in_world_space.x) * (endX - input.position_in_world_space.x) + (endZ - input.position_in_world_space.z) * (endZ - input.position_in_world_space.z));
+			float maxDist = (endX) * (endX)+(endZ + adjustedRadius) * (endZ + adjustedRadius);
+			float vertDist = (endX - input.position_in_world_space.x) * (endX - input.position_in_world_space.x) + (endZ - input.position_in_world_space.z) * (endZ - input.position_in_world_space.z);
 			
 			return maxDist - vertDist;
 		}
 
-		float calcDistMarginAnticlockwise(vertexOutput input, float4 startPoint, float adjustedRadius) {
-			float endX = adjustedRadius * sin(radians(_TowerRotation / 2.0));
-			float endZ = adjustedRadius * cos(radians(_TowerRotation / 2.0));
+		float calcDistMarginAnticlockwise(vertexOutput input, float4 startPoint, float adjustedRadius, float adjustedRotation) {
+			float endX = adjustedRadius * sin(radians(adjustedRotation));
+			float endZ = adjustedRadius * cos(radians(adjustedRotation));
 			float4 maxEndpoint = float4(endX, input.position_in_world_space.y, endZ, 1.0);
-			float maxDist = sqrt((endX) * (endX) + (endZ + adjustedRadius) * (endZ + adjustedRadius));
-			float vertDist = sqrt((input.position_in_world_space.x - endX) * (input.position_in_world_space.x - endX) + (input.position_in_world_space.z - endZ) * (input.position_in_world_space.z - endZ));
+			//float maxDist = sqrt((endX) * (endX) + (endZ + adjustedRadius) * (endZ + adjustedRadius));
+			//float vertDist = sqrt((input.position_in_world_space.x - endX) * (input.position_in_world_space.x - endX) + (input.position_in_world_space.z - endZ) * (input.position_in_world_space.z - endZ));
+			float maxDist = (endX) * (endX) + (endZ + adjustedRadius) * (endZ + adjustedRadius);
+			float vertDist = (input.position_in_world_space.x - endX) * (input.position_in_world_space.x - endX) + (input.position_in_world_space.z - endZ) * (input.position_in_world_space.z - endZ);
 
 			return maxDist - vertDist;
 		}
 
-		float4 tryFillQuadrantClockwise(vertexOutput input, int quadrant)
+		float4 tryFillQuadrantClockwise(vertexOutput input, int quadrant, float adjustedRadius, float adjustedRotation)
 		{
 			if (quadrant == 1)
 			{
-				float adjustedRadius = sqrt(_Radius * _Radius - input.position_in_world_space.y * input.position_in_world_space.y);
 				float4 startPoint = float4(0.0, input.position_in_world_space.y, -adjustedRadius, 1.0);
-				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius);
+				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 					&& input.position_in_world_space.x < 0 && input.position_in_world_space.z < 0)
@@ -79,9 +82,8 @@ Shader "Unlit/DefaultShade" {
 			}
 			else if (quadrant == 2)
 			{
-				float adjustedRadius = sqrt(_Radius * _Radius - input.position_in_world_space.y * input.position_in_world_space.y);
 				float4 startPoint = float4(-adjustedRadius, input.position_in_world_space.y, 0.0, 1.0);
-				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius);
+				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x < 0 && input.position_in_world_space.z > 0)
@@ -95,9 +97,8 @@ Shader "Unlit/DefaultShade" {
 			}
 			else if (quadrant == 3)
 			{
-				float adjustedRadius = sqrt(_Radius * _Radius - input.position_in_world_space.y * input.position_in_world_space.y);
 				float4 startPoint = float4(0.0, input.position_in_world_space.y, adjustedRadius, 1.0);
-				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius);
+				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x > 0 && input.position_in_world_space.z > 0)
@@ -110,9 +111,8 @@ Shader "Unlit/DefaultShade" {
 				}
 			}
 			else {
-				float adjustedRadius = sqrt(_Radius * _Radius - input.position_in_world_space.y * input.position_in_world_space.y);
 				float4 startPoint = float4(adjustedRadius, input.position_in_world_space.y, 0.0, 1.0);
-				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius);
+				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x > 0 && input.position_in_world_space.z < 0)
@@ -126,13 +126,12 @@ Shader "Unlit/DefaultShade" {
 			}
 		}
 
-		float4 tryFillQuadrantAnticlockwise(vertexOutput input, int quadrant)
+		float4 tryFillQuadrantAnticlockwise(vertexOutput input, int quadrant, float adjustedRadius, float adjustedRotation)
 		{
 			if (quadrant == 1)
 			{
-				float adjustedRadius = sqrt(_Radius * _Radius - input.position_in_world_space.y * input.position_in_world_space.y);
 				float4 startPoint = float4(-adjustedRadius, input.position_in_world_space.y, 0.0, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius);
+				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x < 0 && input.position_in_world_space.z < 0)
@@ -146,9 +145,8 @@ Shader "Unlit/DefaultShade" {
 			}
 			else if (quadrant == 2)
 			{
-				float adjustedRadius = sqrt(_Radius * _Radius - input.position_in_world_space.y * input.position_in_world_space.y);
 				float4 startPoint = float4(0.0, input.position_in_world_space.y, adjustedRadius, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius);
+				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x < 0 && input.position_in_world_space.z > 0)
@@ -162,9 +160,8 @@ Shader "Unlit/DefaultShade" {
 			}
 			else if (quadrant == 3)
 			{
-				float adjustedRadius = sqrt(_Radius * _Radius - input.position_in_world_space.y * input.position_in_world_space.y);
 				float4 startPoint = float4(adjustedRadius, input.position_in_world_space.y, 0.0, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius);
+				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x > 0 && input.position_in_world_space.z > 0)
@@ -177,9 +174,8 @@ Shader "Unlit/DefaultShade" {
 				}
 			}
 			else {
-				float adjustedRadius = sqrt(_Radius * _Radius - input.position_in_world_space.y * input.position_in_world_space.y);
 				float4 startPoint = float4(0.0, input.position_in_world_space.y, -adjustedRadius, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius);
+				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x > 0 && input.position_in_world_space.z < 0)
@@ -235,6 +231,9 @@ Shader "Unlit/DefaultShade" {
 				else {
 
 					// Else calculate segments based on tower rotation
+					
+					float adjustedRadius = sqrt(_Radius * _Radius - input.position_in_world_space.y * input.position_in_world_space.y);
+					float adjustedRotation = _TowerRotation / 2.0;
 
 					// Q1
 					float4 fillAttempt = float4(0.0, 0.0, 0.0, 0.0);
@@ -244,7 +243,7 @@ Shader "Unlit/DefaultShade" {
 						if (_RevolveDir == 1)
 						{
 							for (int i = 1; i <= 1; i = i + 1) {
-								fillAttempt = tryFillQuadrantClockwise(input, i);
+								fillAttempt = tryFillQuadrantClockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
 								{
 									return fillAttempt;
@@ -255,7 +254,7 @@ Shader "Unlit/DefaultShade" {
 						//Anticlockwise
 						else if (_RevolveDir == 2) {
 							for (int i = 4; i >= 1; i = i - 1) {
-								fillAttempt = tryFillQuadrantAnticlockwise(input, i);
+								fillAttempt = tryFillQuadrantAnticlockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
 								{
 									return fillAttempt;
@@ -275,7 +274,7 @@ Shader "Unlit/DefaultShade" {
 						if (_RevolveDir == 1)
 						{
 							for (int i = 1; i <= 2; i = i + 1) {
-								fillAttempt = tryFillQuadrantClockwise(input, i);
+								fillAttempt = tryFillQuadrantClockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
 								{
 									return fillAttempt;
@@ -286,7 +285,7 @@ Shader "Unlit/DefaultShade" {
 						//Anticlockwise
 						else if (_RevolveDir == 2) {
 							for (int i = 4; i >= 2; i = i - 1) {
-								fillAttempt = tryFillQuadrantAnticlockwise(input, i);
+								fillAttempt = tryFillQuadrantAnticlockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
 								{
 									return fillAttempt;
@@ -306,7 +305,7 @@ Shader "Unlit/DefaultShade" {
 						if (_RevolveDir == 1)
 						{
 							for (int i = 1; i <= 3; i = i + 1) {
-								fillAttempt = tryFillQuadrantClockwise(input, i);
+								fillAttempt = tryFillQuadrantClockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
 								{
 									return fillAttempt;
@@ -317,7 +316,7 @@ Shader "Unlit/DefaultShade" {
 						//Anticlockwise
 						else if (_RevolveDir == 2) {
 							for (int i = 4; i >= 3; i = i - 1) {
-								fillAttempt = tryFillQuadrantAnticlockwise(input, i);
+								fillAttempt = tryFillQuadrantAnticlockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
 								{
 									return fillAttempt;
@@ -337,7 +336,7 @@ Shader "Unlit/DefaultShade" {
 						if (_RevolveDir == 1)
 						{
 							for (int i = 1; i <= 4; i = i + 1) {
-								fillAttempt = tryFillQuadrantClockwise(input, i);
+								fillAttempt = tryFillQuadrantClockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
 								{
 									return fillAttempt;
@@ -348,7 +347,7 @@ Shader "Unlit/DefaultShade" {
 						//Anticlockwise
 						else if (_RevolveDir == 2) {
 							for (int i = 4; i >= 4; i = i - 1) {
-								fillAttempt = tryFillQuadrantAnticlockwise(input, i);
+								fillAttempt = tryFillQuadrantAnticlockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
 								{
 									return fillAttempt;
