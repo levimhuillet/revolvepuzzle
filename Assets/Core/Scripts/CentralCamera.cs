@@ -227,4 +227,8 @@ public class CentralCamera : MonoBehaviour {
             return 0;
         }
     }
+
+    public EnterType GetEnterType() {
+        return m_enterType;
+    }
 }

@@ -6,6 +6,9 @@ public class RevolvePillar : MonoBehaviour
 {
     public static RevolvePillar instance;
 
+    [SerializeField]
+    private string m_id;
+
     private void Awake() {
         if (instance == null) {
             instance = this;
@@ -26,5 +29,9 @@ public class RevolvePillar : MonoBehaviour
 
     public float GetEulerRotation() {
         return this.transform.localRotation.eulerAngles.y;
+    }
+
+    public string GetID() {
+        return m_id;
     }
 }
