@@ -53,19 +53,18 @@ public class CentralCamera : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        float angle = RevolvePillar.instance.GetEulerRotation();
+        UpdateCycleState(angle);
 
+        m_prevAngle = angle;
+    }
+
+    void LateUpdate() {
         foreach (Camera cam in m_cams) {
             cam.gameObject.transform.position = this.transform.position;
             cam.gameObject.transform.rotation = this.transform.rotation;
             cam.gameObject.transform.localScale = this.transform.localScale;
         }
-
-        float angle = RevolvePillar.instance.GetEulerRotation();
-        UpdateCycleState(angle);
-
-        Debug.Log("Current cycles: " + m_completedCycles);
-
-        m_prevAngle = angle;
     }
 
     private void UpdateCycleState(float angle) {
@@ -91,7 +90,6 @@ public class CentralCamera : MonoBehaviour {
             // Check if exit from Anticlockwise (Frost)
             if (m_enterType == EnterType.Anticlockwise) {
                 if (angle > aclockwiseOuter && m_prevAngle <= aclockwiseOuter && m_prevAngle >= aclockwiseInner) {
-                    Debug.Log("exiting Frost");
                     ExitRealms();
                     return;
                 }
@@ -99,7 +97,6 @@ public class CentralCamera : MonoBehaviour {
             // Check if exit from Clockwise (Flame)
             else if (m_enterType == EnterType.Clockwise) {
                 if (angle < clockwiseOuter && m_prevAngle >= clockwiseOuter && m_prevAngle <= clockwiseInner) {
-                    Debug.Log("exiting Flame");
                     ExitRealms();
                     return;
                 }

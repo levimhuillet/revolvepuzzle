@@ -23,6 +23,9 @@ public class Player : MonoBehaviour
     }
 
     private void Update() {
+        return;
+
+        /*
         if (swapTimer > 0) {
             //swapTimer = swapTimer - Time.deltaTime;
         }
@@ -64,6 +67,6 @@ public class Player : MonoBehaviour
                 vcameras[1].gameObject.SetActive(false);
             }
         }
-
+        */
     }
 }
