@@ -2,7 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CentralCamera : MonoBehaviour {
+public class RevolvePillar : MonoBehaviour
+{
+    public static RevolvePillar instance; // TODO: remove instance
+
     private enum State {
         Frost,
         Flame,
@@ -15,56 +18,60 @@ public class CentralCamera : MonoBehaviour {
         None
     }
 
-    [SerializeField]
-    private Camera m_genericCam;
-    [SerializeField]
-    private Camera m_frostCam;
-    [SerializeField]
-    private Camera m_flameCam;
+    private float m_genericThreshold = .5f; //50f;
+
+    private float m_currAngle;
+    private float m_prevAngle;
+
+    private int m_completedCycles;
+    private bool m_passedPrelimZone;
+    private State m_enteringState;
+    private EnterType m_enterType;
 
     [SerializeField]
     private GameObject m_frostMasker, m_flameMasker;
 
-    private List<Camera> m_cams;
+    [SerializeField]
+    private string m_id;
 
-    private float m_genericThreshold = .5f; //50f;
-    private float m_prevAngle; // angle during the previous frame
-    private int m_completedCycles;
-    private bool m_passedPrelimZone;
-
-    private State m_enteringState;
-    private EnterType m_enterType;
+    private void Awake() {
+        if (instance == null) {
+            instance = this;
+        }
+        else if (this != instance) {
+            Destroy(this.gameObject);
+        }
+    }
 
     private void Start() {
+        m_prevAngle = m_currAngle = CalcEulerRotation();
+
         m_enteringState = State.Generic;
         m_enterType = EnterType.None;
-
-        m_cams = new List<Camera>();
-        m_cams.Add(m_genericCam);
-        m_cams.Add(m_frostCam);
-        m_cams.Add(m_flameCam);
 
         m_completedCycles = 0;
         m_passedPrelimZone = false;
 
         m_frostMasker.SetActive(false);
         m_flameMasker.SetActive(false);
+
+        EventManager.OnEnterFrost.AddListener(HandleEnterFrost);
+        EventManager.OnEnterFlame.AddListener(HandleEnterFlame);
+        EventManager.OnExitRealms.AddListener(HandleExitRealms);
     }
 
     // Update is called once per frame
-    void Update() {
-        float angle = RevolvePillar.instance.GetEulerRotation();
-        UpdateCycleState(angle);
+    void Update()
+    {
+        Vector3 targetPostition = new Vector3(Player.instance.transform.position.x,
+                                       this.transform.position.y,
+                                       Player.instance.transform.position.z);
+        this.transform.LookAt(targetPostition);
 
-        m_prevAngle = angle;
-    }
+        m_prevAngle = m_currAngle;
+        m_currAngle = CalcEulerRotation();
 
-    void LateUpdate() {
-        foreach (Camera cam in m_cams) {
-            cam.gameObject.transform.position = this.transform.position;
-            cam.gameObject.transform.rotation = this.transform.rotation;
-            cam.gameObject.transform.localScale = this.transform.localScale;
-        }
+        UpdateCycleState(m_currAngle);
     }
 
     private void UpdateCycleState(float angle) {
@@ -76,11 +83,11 @@ public class CentralCamera : MonoBehaviour {
         // Check if enter from generic
         if (m_enteringState == State.Generic) {
             if (angle <= aclockwiseOuter && angle >= aclockwiseInner && m_prevAngle > aclockwiseOuter) {
-                EnterFrost();
+                EventManager.OnEnterFrost.Invoke();
                 return;
             }
             else if (angle >= clockwiseOuter && angle <= clockwiseInner && m_prevAngle < clockwiseOuter) {
-                EnterFlame();
+                EventManager.OnEnterFlame.Invoke();
                 return;
             }
         }
@@ -90,14 +97,14 @@ public class CentralCamera : MonoBehaviour {
             // Check if exit from Anticlockwise (Frost)
             if (m_enterType == EnterType.Anticlockwise) {
                 if (angle > aclockwiseOuter && m_prevAngle <= aclockwiseOuter && m_prevAngle >= aclockwiseInner) {
-                    ExitRealms();
+                    EventManager.OnExitRealms.Invoke();
                     return;
                 }
             }
             // Check if exit from Clockwise (Flame)
             else if (m_enterType == EnterType.Clockwise) {
                 if (angle < clockwiseOuter && m_prevAngle >= clockwiseOuter && m_prevAngle <= clockwiseInner) {
-                    ExitRealms();
+                    EventManager.OnExitRealms.Invoke();
                     return;
                 }
             }
@@ -132,7 +139,7 @@ public class CentralCamera : MonoBehaviour {
                 }
 
                 // Invisible Masker
-                if (!m_frostMasker.activeSelf && angle > 90  && angle < 95 && m_completedCycles == 0) {
+                if (!m_frostMasker.activeSelf && angle > 90 && angle < 95 && m_completedCycles == 0) {
                     m_frostMasker.SetActive(true);
                 }
                 else if (m_frostMasker.activeSelf && angle < 90 && angle > 85 && m_completedCycles == 0) {
@@ -176,53 +183,54 @@ public class CentralCamera : MonoBehaviour {
         }
     }
 
-    private void EnterFrost() {
+    #region EventHandlers
+
+    private void HandleEnterFrost() {
         m_enteringState = State.Frost;
         m_enterType = EnterType.Anticlockwise;
-
-        m_frostCam.gameObject.SetActive(true);
-        m_genericCam.gameObject.SetActive(false);
 
         m_frostMasker.SetActive(true);
     }
 
-    private void ExitRealms() {
+    private void HandleExitRealms() {
         m_enteringState = State.Generic;
         m_enterType = EnterType.None;
-
-        m_genericCam.gameObject.SetActive(true);
-        m_frostCam.gameObject.SetActive(false);
-        m_flameCam.gameObject.SetActive(false);
 
         m_frostMasker.SetActive(false);
         m_flameMasker.SetActive(false);
     }
 
-    private void EnterFlame() {
+    private void HandleEnterFlame() {
         m_enteringState = State.Flame;
         m_enterType = EnterType.Clockwise;
-
-        m_flameCam.gameObject.SetActive(true);
-        m_genericCam.gameObject.SetActive(false);
 
         m_flameMasker.SetActive(true);
     }
 
-    public EnterType GetRevolveDir() {
-        return m_enterType;
+    #endregion
+
+    public float GetCurrEuler() {
+        return m_currAngle;
     }
 
-    public int GetNumCycles() {
+    public float GetPrevEuler() {
+        return m_prevAngle;
+    }
+
+    private float CalcEulerRotation() {
+        return this.transform.localRotation.eulerAngles.y;
+    }
+
+    public string GetID() {
+        return m_id;
+    }
+
+    public int GetCycleNum() {
         return m_completedCycles;
     }
 
     public int GetPassedPrelim() {
-        if (m_passedPrelimZone) {
-            return 1;
-        }
-        else {
-            return 0;
-        }
+        return m_passedPrelimZone ? 1 : 0;
     }
 
     public EnterType GetEnterType() {

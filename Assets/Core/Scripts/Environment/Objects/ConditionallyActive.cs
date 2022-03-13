@@ -9,7 +9,7 @@ public class ConditionallyActive : MonoBehaviour
     public struct CATowerData {
         public string TowerID;
         
-        public CentralCamera.EnterType EnterType;
+        public RevolvePillar.EnterType EnterType;
 
         public int CycleNum;
 
