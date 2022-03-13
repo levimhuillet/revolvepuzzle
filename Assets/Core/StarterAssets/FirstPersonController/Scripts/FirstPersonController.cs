@@ -90,7 +90,9 @@ namespace StarterAssets
 			// reset our timeouts on start
 			_jumpTimeoutDelta = JumpTimeout;
 			_fallTimeoutDelta = FallTimeout;
-		}
+
+            _cinemachineTargetPitch = 0;
+        }
 
 		private void Update()
 		{
