@@ -2,17 +2,34 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(ConditionallyActive))]
 public class Interactable : MonoBehaviour
 {
+    private ConditionallyActive _cActive;
+
+    private float m_restHeightOffset;
+
+    private void Awake() {
+        _cActive = this.GetComponent<ConditionallyActive>();
+    }
+
+    private void Start() {
+        m_restHeightOffset = this.transform.position.y;
+    }
+
     public void HandleOnTriggerEnter(Collider other) {
         if (other.gameObject.tag == "Player") {
-            EventManager.OnInteractEnter.Invoke();
+            //EventManager.OnInteractEnter.Invoke();
         }
     }
 
     public void HandleOnTriggerExit(Collider other) {
         if (other.gameObject.tag == "Player") {
-            EventManager.OnInteractExit.Invoke();
+            //EventManager.OnInteractExit.Invoke();
         }
+    }
+
+    public float GetRestHeightOffset() {
+        return m_restHeightOffset;
     }
 }

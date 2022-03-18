@@ -5,16 +5,15 @@ using UnityEngine;
 public class InteractPrompt : MonoBehaviour
 {
     private void Start() {
-        EventManager.OnInteractEnter.AddListener(HandleInteractEnter);
-        EventManager.OnInteractExit.AddListener(HandleInteractExit);
+        EventManager.OnInteractionsAvailable.AddListener(HandleInteractionsAvailable);
+        EventManager.OnNoMoreInteractions.AddListener(HandleNoMoreInteractions);
         this.gameObject.SetActive(false);
     }
 
-    // TODO: make a more robust system through player for when next to multiple objects at once
-    void HandleInteractEnter() {
+    void HandleInteractionsAvailable() {
         this.gameObject.SetActive(true);
     }
-    void HandleInteractExit() {
+    void HandleNoMoreInteractions() {
         this.gameObject.SetActive(false);
     }
 }

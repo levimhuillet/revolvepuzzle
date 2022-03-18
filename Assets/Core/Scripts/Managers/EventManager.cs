@@ -8,8 +8,8 @@ public class EventManager : MonoBehaviour {
     public static UnityEvent OnEnterFrost;
     public static UnityEvent OnEnterFlame;
     public static UnityEvent OnExitRealms;
-    public static UnityEvent OnInteractEnter;
-    public static UnityEvent OnInteractExit;
+    public static UnityEvent OnInteractionsAvailable;
+    public static UnityEvent OnNoMoreInteractions;
 
     private void OnEnable() {
         if (instance == null) {
@@ -23,7 +23,7 @@ public class EventManager : MonoBehaviour {
         OnEnterFrost = new UnityEvent();
         OnEnterFlame = new UnityEvent();
         OnExitRealms = new UnityEvent();
-        OnInteractEnter = new UnityEvent();
-        OnInteractExit = new UnityEvent();
+        OnInteractionsAvailable = new UnityEvent();
+        OnNoMoreInteractions = new UnityEvent();
     }
 }

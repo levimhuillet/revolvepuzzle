@@ -32,6 +32,9 @@ public class RevolvePillar : MonoBehaviour
     private GameObject m_frostMasker, m_flameMasker;
 
     [SerializeField]
+    private GameObject m_simulationPillar;
+
+    [SerializeField]
     private string m_id;
 
     private void Awake() {
@@ -63,10 +66,10 @@ public class RevolvePillar : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector3 targetPostition = new Vector3(Player.instance.transform.position.x,
-                                       this.transform.position.y,
-                                       Player.instance.transform.position.z);
-        this.transform.LookAt(targetPostition);
+        Vector3 targetPosition = Player.instance.transform.position;
+        targetPosition.y = this.transform.position.y;
+
+        this.transform.LookAt(targetPosition);
 
         m_prevAngle = m_currAngle;
         m_currAngle = CalcEulerRotation();
@@ -217,6 +220,13 @@ public class RevolvePillar : MonoBehaviour
         return m_prevAngle;
     }
 
+    public float SimulateLookAtEuler(GameObject targetObj) {
+        Vector3 targetPos = targetObj.transform.position;
+        targetPos.y = this.transform.position.y;
+        m_simulationPillar.transform.LookAt(targetPos);
+        return m_simulationPillar.transform.localRotation.eulerAngles.y;
+    }
+
     private float CalcEulerRotation() {
         return this.transform.localRotation.eulerAngles.y;
     }
@@ -229,8 +239,8 @@ public class RevolvePillar : MonoBehaviour
         return m_completedCycles;
     }
 
-    public int GetPassedPrelim() {
-        return m_passedPrelimZone ? 1 : 0;
+    public bool GetPassedPrelim() {
+        return m_passedPrelimZone;
     }
 
     public EnterType GetEnterType() {

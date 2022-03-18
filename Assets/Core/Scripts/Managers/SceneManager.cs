@@ -3,11 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SceneManager : MonoBehaviour {
-    [SerializeField]
-    private ConditionallyActive[] m_cActives;
+    public static SceneManager instance;
 
     [SerializeField]
     private RevolvePillar[] m_pillars;
+
+    private List<ConditionallyActive> m_cActives;
+
+    private void Awake() {
+        if (instance == null) {
+            instance = this;
+        }
+        else if (this != instance) {
+            Destroy(this.gameObject);
+        }
+
+        m_cActives = new List<ConditionallyActive>();
+    }
 
     // Update is called once per frame
     void Update() {
@@ -18,7 +30,13 @@ public class SceneManager : MonoBehaviour {
         foreach (ConditionallyActive cActive in m_cActives) {
             cActive.MarkedActive = false;
 
-            ConditionallyActive.CATowerData[] data = cActive.GetData();
+            List<ConditionallyActive.CATowerData> data = cActive.GetData();
+
+            // if data is empty, present everywhere
+            if (data.Count == 0) {
+                cActive.MarkedActive = true;
+                continue;
+            }
 
             foreach (ConditionallyActive.CATowerData d in data) {
                 foreach (RevolvePillar pillar in m_pillars) {
@@ -26,11 +44,10 @@ public class SceneManager : MonoBehaviour {
                     if (pillar.GetID() == d.TowerID) {
                         // Determine if should be set active
                         float rotation = pillar.GetCurrEuler();
-
                         if (rotation >= d.MinAngle
                             && rotation <= d.MaxAngle
                             && pillar.GetCycleNum() == d.CycleNum
-                            && pillar.GetPassedPrelim() == d.PassedPrelim
+                            && (pillar.GetPassedPrelim() == d.PassedPrelim)
                             && pillar.GetEnterType() == d.EnterType) {
                             cActive.MarkedActive = true;
                         }
@@ -52,5 +69,13 @@ public class SceneManager : MonoBehaviour {
         }
 
         return false;
+    }
+
+    public void AddCActive(ConditionallyActive cActive) {
+        m_cActives.Add(cActive);
+    }
+
+    public RevolvePillar[] GetPillars() {
+        return m_pillars;
     }
 }
