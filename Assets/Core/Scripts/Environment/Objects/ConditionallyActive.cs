@@ -48,6 +48,10 @@ public class ConditionallyActive : MonoBehaviour {
         return m_data;
     }
 
+    public void SetData(List<CATowerData> data) {
+        m_data = data;
+    }
+
     public void ClearData() {
         m_data.Clear();
     }
