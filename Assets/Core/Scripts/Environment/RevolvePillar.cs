@@ -26,8 +26,6 @@ public class RevolvePillar : MonoBehaviour
         Generic
     }
 
-    private float m_genericThreshold = .5f; //50f;
-
     private float m_currAngle;
     private float m_prevAngle;
 
@@ -88,10 +86,10 @@ public class RevolvePillar : MonoBehaviour
     }
 
     private void UpdateCycleState(float angle) {
-        float clockwiseInner = m_genericThreshold * 2;
-        float clockwiseOuter = m_genericThreshold;
-        float aclockwiseInner = 360 - m_genericThreshold * 2;
-        float aclockwiseOuter = 360 - m_genericThreshold;
+        float clockwiseInner = SceneManager.GenericAngleThreshold * 2;
+        float clockwiseOuter = SceneManager.GenericAngleThreshold;
+        float aclockwiseInner = 360 - SceneManager.GenericAngleThreshold * 2;
+        float aclockwiseOuter = 360 - SceneManager.GenericAngleThreshold;
 
         // Check if enter from generic
         if (m_enteringState == EnterState.Generic) {
@@ -198,7 +196,7 @@ public class RevolvePillar : MonoBehaviour
         //update ZoneType
         // if in a region that could update and moving
         if (m_completedCycles == 0 && m_prevAngle != m_currAngle) {
-            if (angle >= 180 && angle <= 180 + m_genericThreshold) {
+            if (angle >= 180 && angle <= 180 + SceneManager.GenericAngleThreshold) {
                 // check for enter Flame or leave Frost
                 // enter Flame
                 if (m_enterType == EnterType.Clockwise) {
@@ -213,7 +211,7 @@ public class RevolvePillar : MonoBehaviour
                     }
                 }
             }
-            else if (angle >= 180 - m_genericThreshold && angle <= 180) {
+            else if (angle >= 180 - SceneManager.GenericAngleThreshold && angle <= 180) {
                 // check for enter Frost or leave Flame
                 // enter Frost
                 if (m_enterType == EnterType.Anticlockwise) {
@@ -267,7 +265,7 @@ public class RevolvePillar : MonoBehaviour
 
     public float SimulateLookAtEuler(GameObject targetObj) {
         Vector3 targetPos = targetObj.transform.position;
-        targetPos.y = this.transform.position.y;
+        targetPos.y = m_simulationPillar.transform.position.y;
         m_simulationPillar.transform.LookAt(targetPos);
         return m_simulationPillar.transform.localRotation.eulerAngles.y;
     }

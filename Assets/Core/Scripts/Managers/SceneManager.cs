@@ -5,6 +5,8 @@ using UnityEngine;
 public class SceneManager : MonoBehaviour {
     public static SceneManager instance;
 
+    public const float GenericAngleThreshold = 0.5f;
+
     [SerializeField]
     private RevolvePillar[] m_pillars;
 
