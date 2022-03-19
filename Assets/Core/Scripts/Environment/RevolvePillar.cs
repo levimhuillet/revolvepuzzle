@@ -6,7 +6,9 @@ public class RevolvePillar : MonoBehaviour
 {
     public static RevolvePillar instance; // TODO: remove instance
 
-    private enum State {
+    // Note: EnterX refers to things from the player camera perspective, such as unveiling a new zone 180 degrees away.
+    // ZoneType refers to the zone the player is actively standing in
+    private enum EnterState {
         Frost,
         Flame,
         Generic
@@ -18,6 +20,12 @@ public class RevolvePillar : MonoBehaviour
         None
     }
 
+    public enum ZoneType {
+        Frost,
+        Flame,
+        Generic
+    }
+
     private float m_genericThreshold = .5f; //50f;
 
     private float m_currAngle;
@@ -25,8 +33,9 @@ public class RevolvePillar : MonoBehaviour
 
     private int m_completedCycles;
     private bool m_passedPrelimZone;
-    private State m_enteringState;
+    private EnterState m_enteringState;
     private EnterType m_enterType;
+    private ZoneType m_zoneType;
 
     [SerializeField]
     private GameObject m_frostMasker, m_flameMasker;
@@ -49,8 +58,9 @@ public class RevolvePillar : MonoBehaviour
     private void Start() {
         m_prevAngle = m_currAngle = CalcEulerRotation();
 
-        m_enteringState = State.Generic;
+        m_enteringState = EnterState.Generic;
         m_enterType = EnterType.None;
+        m_zoneType = ZoneType.Generic;
 
         m_completedCycles = 0;
         m_passedPrelimZone = false;
@@ -84,7 +94,7 @@ public class RevolvePillar : MonoBehaviour
         float aclockwiseOuter = 360 - m_genericThreshold;
 
         // Check if enter from generic
-        if (m_enteringState == State.Generic) {
+        if (m_enteringState == EnterState.Generic) {
             if (angle <= aclockwiseOuter && angle >= aclockwiseInner && m_prevAngle > aclockwiseOuter) {
                 EventManager.OnEnterFrost.Invoke();
                 return;
@@ -114,7 +124,7 @@ public class RevolvePillar : MonoBehaviour
         }
 
         // Check if furthering loops
-        if (m_enteringState != State.Generic) {
+        if (m_enteringState != EnterState.Generic) {
             // within Frost:
             if (m_enterType == EnterType.Anticlockwise) {
                 // check if entered threshold zone
@@ -184,19 +194,54 @@ public class RevolvePillar : MonoBehaviour
                 }
             }
         }
+
+        //update ZoneType
+        // if in a region that could update and moving
+        if (m_completedCycles == 0 && m_prevAngle != m_currAngle) {
+            if (angle >= 180 && angle <= 180 + m_genericThreshold) {
+                // check for enter Flame or leave Frost
+                // enter Flame
+                if (m_enterType == EnterType.Clockwise) {
+                    if (m_zoneType == ZoneType.Generic) {
+                        m_zoneType = ZoneType.Flame;
+                    }
+                }
+                else {
+                    // leave Frost
+                    if (m_zoneType == ZoneType.Frost) {
+                        m_zoneType = ZoneType.Generic;
+                    }
+                }
+            }
+            else if (angle >= 180 - m_genericThreshold && angle <= 180) {
+                // check for enter Frost or leave Flame
+                // enter Frost
+                if (m_enterType == EnterType.Anticlockwise) {
+                    if (m_zoneType == ZoneType.Generic) {
+                        m_zoneType = ZoneType.Frost;
+                    }
+                }
+                else {
+                    // leave Flame
+                    if (m_zoneType == ZoneType.Flame) {
+                        m_zoneType = ZoneType.Generic;
+                    }
+                }
+            }
+        }
     }
 
     #region EventHandlers
 
     private void HandleEnterFrost() {
-        m_enteringState = State.Frost;
+        m_enteringState = EnterState.Frost;
         m_enterType = EnterType.Anticlockwise;
 
         m_frostMasker.SetActive(true);
     }
 
     private void HandleExitRealms() {
-        m_enteringState = State.Generic;
+        m_enteringState = EnterState.Generic;
         m_enterType = EnterType.None;
 
         m_frostMasker.SetActive(false);
@@ -204,7 +249,7 @@ public class RevolvePillar : MonoBehaviour
     }
 
     private void HandleEnterFlame() {
-        m_enteringState = State.Flame;
+        m_enteringState = EnterState.Flame;
         m_enterType = EnterType.Clockwise;
 
         m_flameMasker.SetActive(true);
@@ -245,5 +290,9 @@ public class RevolvePillar : MonoBehaviour
 
     public EnterType GetEnterType() {
         return m_enterType;
+    }
+
+    public ZoneType GetZoneType() {
+        return m_zoneType;
     }
 }

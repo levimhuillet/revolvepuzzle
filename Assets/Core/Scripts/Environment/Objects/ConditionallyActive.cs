@@ -3,12 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ConditionallyActive : MonoBehaviour
-{
+public class ConditionallyActive : MonoBehaviour {
     [Serializable]
     public struct CATowerData {
         public string TowerID;
-        
+
         public RevolvePillar.EnterType EnterType;
 
         public int CycleNum;
@@ -26,6 +25,7 @@ public class ConditionallyActive : MonoBehaviour
             EnterType = enterType;
             CycleNum = cycleNum;
             PassedPrelim = passedPrelim;
+            // TODO: swap min and max if backwards
             MinAngle = minAngle;
             MaxAngle = maxAngle;
             ClockwiseBounds = clockwiseBounds;
@@ -59,6 +59,8 @@ public class ConditionallyActive : MonoBehaviour
     public void HandleDrop() {
         // set cActive data
         SetNewCActiveData();
+
+        // set appropriate layer for the current zone
     }
 
     private void SetNewCActiveData() {
@@ -69,20 +71,17 @@ public class ConditionallyActive : MonoBehaviour
             // get current object angle and zone (enter type)
 
             // if player is in original zone, appear
-            CATowerData newData = GenerateNewCATowerData(RevolvePillar.EnterType.None, pillar);
-            AddData(newData);
+            //GenerateNewCATowerData(RevolvePillar.EnterType.None, pillar);
 
-            // if player is < 180 and clockwise-ward in a new zone, appear
-            newData = GenerateNewCATowerData(RevolvePillar.EnterType.Clockwise, pillar);
-            AddData(newData);
+            // generate clockwise-ward data
+            GenerateNewCATowerData(RevolvePillar.EnterType.Clockwise, pillar);
 
-            // if player is > 180 and anticlockwise-ward a new zone, appear
-            newData = GenerateNewCATowerData(RevolvePillar.EnterType.Anticlockwise, pillar);
-            AddData(newData);
+            // generate anticlockwise-ward data
+            GenerateNewCATowerData(RevolvePillar.EnterType.Anticlockwise, pillar);
         }
     }
 
-    private CATowerData GenerateNewCATowerData(RevolvePillar.EnterType zoneType, RevolvePillar pillar) {
+    private void GenerateNewCATowerData(RevolvePillar.EnterType newAngleDir, RevolvePillar pillar) {
         string towerID = pillar.GetID();
 
         RevolvePillar.EnterType enterType = RevolvePillar.EnterType.None;
@@ -98,44 +97,128 @@ public class ConditionallyActive : MonoBehaviour
         // may need to project object, then calculate. Otherwise keep object at exact same angle as player
         // TODO: check for prelim zone edge cases
 
-        switch (zoneType) {
+        switch (newAngleDir) {
             case RevolvePillar.EnterType.None:
-                // if player is in original zone, appear
-                enterType = currEnterType;
-                cycleNum = pillar.GetCycleNum();
-                maxAngle = 360;
                 break;
             case RevolvePillar.EnterType.Clockwise:
-                // if player is < 180 and clockwise-ward in a new zone, appear
-                if (currEnterType == RevolvePillar.EnterType.Clockwise) {
-                    // continue through cycles
-                    enterType = currEnterType;
-                    cycleNum = pillar.GetCycleNum() + 1;
-                    maxAngle = 360;
-                }
-                else {
-                    // check if enough to leave Anticlockwise or None for a new zone
-                }
+                switch (pillar.GetZoneType()) {
+                    case RevolvePillar.ZoneType.Generic:
+                        // in a generic zone
 
+                        if (currAngle <= 180) {
+                            // if less than or equal to 180:
+                            // objLookAtAngle to 360 in Flame(clock) cycle 0
+                            // 0 to (180 - objLookAtAngle) in Flame(clock) cycle 0
+                            // (180 - objLookAtAngle) in Flame(clock) cycle 1
+                            // TODO: more cases if there are more than one max cycle
+                        }
+                        else {
+                            // if greater than 180:
+                            // objLookAngle to (360 - m_genericThreshold) in Frost(anti) cycle 0
+                            // (360 - m_genericThreshold) to 360 in None cycle 0
+                            // 0 to (objLookAngle - 180) in None cycle 0
+                        }
+
+                        break;
+                    case RevolvePillar.ZoneType.Frost:
+                        // in frost zone
+
+                        if (currAngle <= 180) {
+                            // if less than or equal to 180:
+                            // objLookAngle to (360 - m_genericThreshold) in Frost(anti) cycle 0
+                            // (360 - m_genericThreshold) to (objLookAngle + 180) in None cycle 0
+                            // TODO: more cases here if more than one max cycle
+                        }
+                        else {
+                            // if greater than 180:
+                            // objLookAngle to (360 - m_genericThreshold) in Frost(anti) cycle 1
+                            // (360 - m_genericThreshold) to 360 in Frost cycle 0
+                            // 0 to (objLookAngle - 180) in Frost cycle 0
+                            // TODO: more cases here if more than one max cycle
+                        }
+
+                        break;
+                    case RevolvePillar.ZoneType.Flame:
+                        // in flame zone
+
+                        if (currAngle <= 180) {
+                            // if less than or equal to 180:
+                            // objLookAngle to 360 in Flame(clock) cycle 1
+                            // TODO: more cases here if more than one max cycle
+                        }
+                        else {
+                            // if greater than 180:
+                            // objLookAngle to 360 in Flame(clock) cycle 0
+                            // 0 to (objLookAngle - 180) in Flame(clock) cycle 0
+                            // (objLookAngle - 180) to (360 - m_genericThreshold) (since only one max cycle) in Flame(clock) cycle 1
+                            // TODO: more cases here if more than one max cycle
+                        }
+
+                        break;
+                    default:
+                        break;
+                }
                 break;
             case RevolvePillar.EnterType.Anticlockwise:
-                // if player is > 180 and anticlockwise-ward a new zone, appear
-                if (currEnterType == RevolvePillar.EnterType.Anticlockwise) {
-                    // continue through cycles
-                    enterType = currEnterType;
-                    cycleNum = pillar.GetCycleNum() + 1;
-                    maxAngle = 360;
-                }
-                else {
-                    // check if enough to leave Clockwise or None for a new zone
-                }
+                switch (pillar.GetZoneType()) {
+                    case RevolvePillar.ZoneType.Generic:
+                        // in a generic zone
 
+                        if (currAngle <= 180) {
+                            // if less than or equal to 180:
+                            // 0 to objLookAtAngle in None cycle 0, Flame(clock) cycle 0
+                            // (180 + objLookAtAngle) to 360 in None cycle 0
+                            // TODO: more cases if more than one max cycle
+                        }
+                        else {
+                            // if greater than 180:
+                            // (objLookAngle - 180) to objLookAtAngle in Frost(anti) cycle 0
+                            // (objLookAtAngle - 180) to 180 Frost(anti) cycle 0
+                        }
+                        break;
+                    case RevolvePillar.ZoneType.Frost:
+                        // in a frost zone
 
+                        if (currAngle <= 180) {
+                            // if less than or equal to 180:
+                            // 0 to objLookAngle in Frost(anti) cycle 0
+                            // (180 + objLookAngle) to 360 in Frost(anti) cycle 0
+                            // 0 to 360 (since only one max cycle) in Frost(anti) cycle 1
+                            // TODO: more cases here if more than one max cycle
+                        }
+                        else {
+                            // if greater than 180:
+                            // 0 to objLookAngle in Frost(anti) cycle 1
+                            // TODO: more cases here if more than one max cycle
+                        }
+
+                        break;
+                    case RevolvePillar.ZoneType.Flame:
+                        // in flame zone
+
+                        if (currAngle <= 180) {
+                            // if less than or equal to 180:
+                            // m_genericThreshold to objLookAngle in Flame(clock) cycle 1
+                            // 0 to (180 - objLookAngle) in Flame(clock) cycle 0
+                            // (180 + objLookAngle) to 360 in Flame(clock) cycle 0
+                            // TODO: more cases here if more than one max cycle
+                        }
+                        else {
+                            // if greater than 180:
+                            // m_genericThreshold to objLookAngle in Flame(clock) cycle 0
+                            // (objLookAngle - 180) to m_genericThreshold (or 180) in None cycle 0
+                        }
+
+                        break;
+                    default:
+                        break;
+                }
                 break;
             default:
                 break;
         }
 
-        return new CATowerData(towerID, enterType, cycleNum, passedPrelim, minAngle, maxAngle, clockwiseBounds);
+        CATowerData newData = new CATowerData(towerID, enterType, cycleNum, passedPrelim, minAngle, maxAngle, clockwiseBounds);
+        AddData(newData);
     }
 }
