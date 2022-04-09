@@ -35,6 +35,8 @@ public class RevolvePillar : MonoBehaviour
     private EnterType m_enterType;
     private ZoneType m_zoneType;
 
+    private float m_windAngle; // pillar's woundedness
+
     [SerializeField]
     private GameObject m_frostMasker, m_flameMasker;
 
@@ -54,7 +56,7 @@ public class RevolvePillar : MonoBehaviour
     }
 
     private void Start() {
-        m_prevAngle = m_currAngle = CalcEulerRotation();
+        m_prevAngle = m_currAngle = m_windAngle = CalcEulerRotation();
 
         m_enteringState = EnterState.Generic;
         m_enterType = EnterType.None;
@@ -81,6 +83,13 @@ public class RevolvePillar : MonoBehaviour
 
         m_prevAngle = m_currAngle;
         m_currAngle = CalcEulerRotation();
+
+        if (Between(m_prevAngle, 350, 360) && Between(m_currAngle, 0, 10)) {
+            m_windAngle += 360;
+        }
+        else if (Between(m_prevAngle, 0, 10) && Between(m_currAngle, 350, 360)) {
+            m_windAngle -= 360;
+        }
 
         UpdateCycleState(m_currAngle);
     }
@@ -292,5 +301,14 @@ public class RevolvePillar : MonoBehaviour
 
     public ZoneType GetZoneType() {
         return m_zoneType;
+    }
+
+
+    private bool Between(float angle, float lowAngle, float highAngle) {
+        if (angle >= lowAngle && angle <= highAngle) {
+            return true;
+        }
+
+        return false;
     }
 }
