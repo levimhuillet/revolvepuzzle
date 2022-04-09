@@ -12,11 +12,21 @@ public class Interactable : MonoBehaviour
 
     private void Awake() {
         _cActive = this.GetComponent<ConditionallyActive>();
-        m_resetData = _cActive.GetData();
+    }
+
+    private void Update() {
+        Debug.Log("reset data size: " + m_resetData.Count);
     }
 
     private void Start() {
         m_restHeightOffset = this.transform.position.y;
+
+        // TODO: DEBUG THIS
+        m_resetData = new List<ConditionallyActive.CATowerData>();
+        List<ConditionallyActive.CATowerData> resetList = _cActive.GetData();
+        foreach (ConditionallyActive.CATowerData data in resetList) {
+            m_resetData.Add(data);
+        }
     }
 
     private void OnDestroy() {
