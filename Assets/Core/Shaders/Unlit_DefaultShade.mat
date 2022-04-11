@@ -32,12 +32,12 @@ Material:
         m_Scale: {x: 3, y: 3}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _NumCycles: 1
+    - _NumCycles: 0
     - _OutlineWidth: 2
     - _PassedPrelim: 0
     - _Radius: 100
     - _RevolveDir: 2
-    - _TowerRotation: 335.8582
+    - _TowerRotation: 328.0464
     - _VisibleDistance: 20
     m_Colors:
     - _FlameColour: {r: 1, g: 0, b: 0, a: 1}
