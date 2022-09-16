@@ -12,6 +12,8 @@ public class SceneManager : MonoBehaviour {
 
     private List<ConditionallyActive> m_cActives;
 
+    private bool m_needsFirstEval; // whether the manager has evaluated the initial positions of cActives
+
     private void Awake() {
         if (instance == null) {
             instance = this;
@@ -21,11 +23,13 @@ public class SceneManager : MonoBehaviour {
         }
 
         m_cActives = new List<ConditionallyActive>();
+
+        m_needsFirstEval = true;
     }
 
     // Update is called once per frame
     void Update() {
-        if (!AnglesHaveChanged()) {
+        if (!AnglesHaveChanged() && !m_needsFirstEval) {
             return;
         }
 
@@ -80,6 +84,8 @@ public class SceneManager : MonoBehaviour {
         foreach (ConditionallyActive cActive in m_cActives) {
             cActive.gameObject.SetActive(cActive.MarkedActive);
         }
+
+        m_needsFirstEval = false;
     }
 
     private bool AnglesHaveChanged() {

@@ -37,6 +37,7 @@ public class RevolvePillar : MonoBehaviour
     private ZoneType m_zoneType; // zone player is physically in
 
     private float m_windAngle; // pillar's woundedness
+    private bool m_firstScene;
 
     #region Debug UI
 
@@ -68,6 +69,7 @@ public class RevolvePillar : MonoBehaviour
     }
 
     private void Start() {
+        m_firstScene = true;
         m_prevAngle = m_currAngle = m_windAngle = CalcEulerRotation();
 
         m_enteringState = EnterState.Generic;
@@ -113,6 +115,10 @@ public class RevolvePillar : MonoBehaviour
         float aclockwiseInner = 360 - SceneManager.GenericAngleThreshold * 2;
         float aclockwiseOuter = 360 - SceneManager.GenericAngleThreshold;
         */
+
+        if (m_prevAngle == m_currAngle) {
+            return;
+        }
 
         // Check if enter from generic
         if (m_enteringState == EnterState.Generic) {
@@ -274,7 +280,7 @@ public class RevolvePillar : MonoBehaviour
             }
         }
 
-                // Update Debug Text
+        // Update Debug Text
         m_EnterStateText.text = "Enter State: " + m_enteringState.ToString();
         m_EnterTypeText.text = "Enter Type: " + m_enterType.ToString();
         m_ZoneTypeText.text = "Zone Type: " + m_zoneType.ToString();
