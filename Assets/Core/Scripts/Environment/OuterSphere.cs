@@ -23,6 +23,7 @@ public class OuterSphere : MonoBehaviour
         else if (RevolvePillar.instance.GetEnterType() == RevolvePillar.EnterType.Anticlockwise) {
             revolveDirInt = 2;
         }
+        
         m_renderer.sharedMaterial.SetInt("_RevolveDir", revolveDirInt);
         m_renderer.sharedMaterial.SetFloat("_Radius", RevolvePillar.instance.gameObject.transform.localScale.y);
         m_renderer.sharedMaterial.SetInt("_NumCycles", RevolvePillar.instance.GetCycleNum());

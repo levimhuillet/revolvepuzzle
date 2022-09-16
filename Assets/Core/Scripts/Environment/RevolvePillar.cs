@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class RevolvePillar : MonoBehaviour
@@ -31,11 +32,22 @@ public class RevolvePillar : MonoBehaviour
 
     private int m_completedCycles;
     private bool m_passedPrelimZone;
-    private EnterState m_enteringState;
-    private EnterType m_enterType;
-    private ZoneType m_zoneType;
+    private EnterState m_enteringState; // ??
+    private EnterType m_enterType; // direction player is making their way towards
+    private ZoneType m_zoneType; // zone player is physically in
 
     private float m_windAngle; // pillar's woundedness
+
+    #region UI
+
+    [SerializeField] private TMP_Text m_EnterStateText;
+    [SerializeField] private TMP_Text m_EnterTypeText;
+    [SerializeField] private TMP_Text m_ZoneTypeText;
+    [SerializeField] private TMP_Text m_CurrAngleText;
+    [SerializeField] private TMP_Text m_WindAngleText;
+    [SerializeField] private TMP_Text m_CombinedAngleText;
+
+    #endregion // UI
 
     [SerializeField]
     private GameObject m_frostMasker, m_flameMasker;
@@ -91,39 +103,46 @@ public class RevolvePillar : MonoBehaviour
             m_windAngle -= 360;
         }
 
-        UpdateCycleState(m_currAngle);
+        UpdateCycleState(m_currAngle + m_windAngle);
     }
 
     private void UpdateCycleState(float angle) {
+        /*
         float clockwiseInner = SceneManager.GenericAngleThreshold * 2;
         float clockwiseOuter = SceneManager.GenericAngleThreshold;
         float aclockwiseInner = 360 - SceneManager.GenericAngleThreshold * 2;
         float aclockwiseOuter = 360 - SceneManager.GenericAngleThreshold;
+        */
 
         // Check if enter from generic
         if (m_enteringState == EnterState.Generic) {
-            if (angle <= aclockwiseOuter && angle >= aclockwiseInner && m_prevAngle > aclockwiseOuter) {
+            Debug.Log("Entered from generic");
+            if (angle <= -SceneManager.GenericAngleThreshold) {
                 EventManager.OnEnterFrost.Invoke();
                 return;
             }
-            else if (angle >= clockwiseOuter && angle <= clockwiseInner && m_prevAngle < clockwiseOuter) {
+            else if (angle >= SceneManager.GenericAngleThreshold) {
                 EventManager.OnEnterFlame.Invoke();
                 return;
             }
         }
 
         // Check if exiting is a possibility
-        if (m_completedCycles == 0 && !m_passedPrelimZone) {
+        if (Mathf.Abs(angle) <= SceneManager.GenericAngleThreshold) {
             // Check if exit from Anticlockwise (Frost)
             if (m_enterType == EnterType.Anticlockwise) {
-                if (angle > aclockwiseOuter && m_prevAngle <= aclockwiseOuter && m_prevAngle >= aclockwiseInner) {
+                if (angle >= -SceneManager.GenericAngleThreshold) {
+                    Debug.Log("exit from Frost");
+
                     EventManager.OnExitRealms.Invoke();
                     return;
                 }
             }
             // Check if exit from Clockwise (Flame)
             else if (m_enterType == EnterType.Clockwise) {
-                if (angle < clockwiseOuter && m_prevAngle >= clockwiseOuter && m_prevAngle <= clockwiseInner) {
+                if (angle <= SceneManager.GenericAngleThreshold) {
+                    Debug.Log("exit from Flame");
+
                     EventManager.OnExitRealms.Invoke();
                     return;
                 }
@@ -134,6 +153,7 @@ public class RevolvePillar : MonoBehaviour
         if (m_enteringState != EnterState.Generic) {
             // within Frost:
             if (m_enterType == EnterType.Anticlockwise) {
+                /*
                 // check if entered threshold zone
                 if (angle <= aclockwiseOuter && angle >= aclockwiseInner) {
                     // check if entered from enter (versus staying within zone)
@@ -157,17 +177,22 @@ public class RevolvePillar : MonoBehaviour
                 else if (angle > clockwiseInner && angle < 90) {
                     m_passedPrelimZone = false;
                 }
-
+                */
                 // Invisible Masker
-                if (!m_frostMasker.activeSelf && angle > 90 && angle < 95 && m_completedCycles == 0) {
+                if (!m_frostMasker.activeSelf && angle > 90 && angle < 95) {
+                    Debug.Log("activated frost masker");
+
                     m_frostMasker.SetActive(true);
                 }
-                else if (m_frostMasker.activeSelf && angle < 90 && angle > 85 && m_completedCycles == 0) {
+                else if (m_frostMasker.activeSelf && angle < 90 && angle > 85) {
+                    Debug.Log("shut off frost masker");
+
                     m_frostMasker.SetActive(false);
                 }
             }
             // within Flame:
             else if (m_enterType == EnterType.Clockwise) {
+                /*
                 // check if entered threshold zone
                 if (angle >= clockwiseOuter && angle <= clockwiseInner) {
                     // check if entered from enter (versus staying within zone)
@@ -191,12 +216,16 @@ public class RevolvePillar : MonoBehaviour
                 else if (angle < aclockwiseInner && angle > 270) {
                     m_passedPrelimZone = false;
                 }
-
+                */
                 // Invisible Masker
-                if (!m_flameMasker.activeSelf && angle < 270 && angle > 265 && m_completedCycles == 0) {
+                if (!m_flameMasker.activeSelf && angle < -90 && angle > -95) {
+                    Debug.Log("activated flame masker");
+
                     m_flameMasker.SetActive(true);
                 }
-                else if (m_flameMasker.activeSelf && angle > 270 && angle < 275 && m_completedCycles == 0) {
+                else if (m_flameMasker.activeSelf && angle > -90 && angle < -85) {
+                    Debug.Log("shut off flame masker");
+
                     m_flameMasker.SetActive(false);
                 }
             }
@@ -210,32 +239,48 @@ public class RevolvePillar : MonoBehaviour
                 // enter Flame
                 if (m_enterType == EnterType.Clockwise) {
                     if (m_zoneType == ZoneType.Generic) {
+                        Debug.Log("enter Flame");
+
                         m_zoneType = ZoneType.Flame;
                     }
                 }
                 else {
                     // leave Frost
                     if (m_zoneType == ZoneType.Frost) {
+                        Debug.Log("leave Frost");
+
                         m_zoneType = ZoneType.Generic;
                     }
                 }
             }
-            else if (angle >= 180 - SceneManager.GenericAngleThreshold && angle <= 180) {
+            else if (angle >= -180 - SceneManager.GenericAngleThreshold && angle <= -180) {
                 // check for enter Frost or leave Flame
                 // enter Frost
                 if (m_enterType == EnterType.Anticlockwise) {
                     if (m_zoneType == ZoneType.Generic) {
+                        Debug.Log("enter Frost");
+
                         m_zoneType = ZoneType.Frost;
                     }
                 }
                 else {
                     // leave Flame
                     if (m_zoneType == ZoneType.Flame) {
+                        Debug.Log("leave Flame");
+
                         m_zoneType = ZoneType.Generic;
                     }
                 }
             }
         }
+
+        // Update Debug Text
+        m_EnterStateText.text = "Enter State: " + m_enteringState.ToString();
+        m_EnterTypeText.text = "Enter Type: " + m_enterType.ToString();
+        m_ZoneTypeText.text = "Zone Type: " + m_zoneType.ToString();
+        m_CurrAngleText.text = "Curr Angle: " + m_currAngle;
+        m_WindAngleText.text = "Wind Angle: " + m_windAngle;
+        m_CombinedAngleText.text = "Combined Angle: " + angle;
     }
 
     #region EventHandlers
@@ -266,6 +311,10 @@ public class RevolvePillar : MonoBehaviour
 
     public float GetCurrEuler() {
         return m_currAngle;
+    }
+
+    public float GetWoundedness() {
+        return m_currAngle + m_windAngle;
     }
 
     public float GetPrevEuler() {

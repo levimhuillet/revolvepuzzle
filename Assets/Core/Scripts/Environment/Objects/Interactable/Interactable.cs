@@ -15,7 +15,7 @@ public class Interactable : MonoBehaviour
     }
 
     private void Update() {
-        Debug.Log("reset data size: " + m_resetData.Count);
+        // Debug.Log("reset data size: " + m_resetData.Count);
     }
 
     private void Start() {
