@@ -45,20 +45,21 @@ public class SceneManager : MonoBehaviour {
                     string pillarID = pillar.GetID();
                     if (pillar.GetID() == d.TowerID) {
                         // Determine if should be set active
-                        float rotation = pillar.GetCurrEuler();
+                        float rotation = pillar.GetWoundedness();
 
-                        bool withinAngle;
-                        if (d.ClockwiseBounds) {
-                            withinAngle = (rotation >= d.MinAngle && rotation <= d.MaxAngle);
-                        }
-                        else {
-                            withinAngle = (rotation <= d.MinAngle || rotation >= d.MaxAngle);
-                        }
+                        bool withinAngle = (rotation >= d.MinAngle && rotation <= d.MaxAngle);
 
+
+                        /*
                         if (withinAngle
                             && pillar.GetCycleNum() == d.CycleNum
                             && (pillar.GetPassedPrelim() == d.PassedPrelim)
                             && pillar.GetEnterType() == d.EnterType) {
+                            cActive.MarkedActive = true;
+                        }
+                        */
+
+                        if (withinAngle) {
                             cActive.MarkedActive = true;
                         }
                     }

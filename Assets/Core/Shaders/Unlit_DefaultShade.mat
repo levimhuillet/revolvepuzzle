@@ -36,8 +36,8 @@ Material:
     - _OutlineWidth: 2
     - _PassedPrelim: 0
     - _Radius: 100
-    - _RevolveDir: 1
-    - _TowerRotation: 30.526087
+    - _RevolveDir: 2
+    - _TowerRotation: -7.645874
     - _VisibleDistance: 20
     m_Colors:
     - _FlameColour: {r: 1, g: 0, b: 0, a: 1}

@@ -38,7 +38,7 @@ public class RevolvePillar : MonoBehaviour
 
     private float m_windAngle; // pillar's woundedness
 
-    #region UI
+    #region Debug UI
 
     [SerializeField] private TMP_Text m_EnterStateText;
     [SerializeField] private TMP_Text m_EnterTypeText;
@@ -47,7 +47,7 @@ public class RevolvePillar : MonoBehaviour
     [SerializeField] private TMP_Text m_WindAngleText;
     [SerializeField] private TMP_Text m_CombinedAngleText;
 
-    #endregion // UI
+    #endregion // Debug UI
 
     [SerializeField]
     private GameObject m_frostMasker, m_flameMasker;
@@ -179,12 +179,12 @@ public class RevolvePillar : MonoBehaviour
                 }
                 */
                 // Invisible Masker
-                if (!m_frostMasker.activeSelf && angle > 90 && angle < 95) {
+                if (!m_frostMasker.activeSelf && angle > -90 && angle < -85) {
                     Debug.Log("activated frost masker");
 
                     m_frostMasker.SetActive(true);
                 }
-                else if (m_frostMasker.activeSelf && angle < 90 && angle > 85) {
+                else if (m_frostMasker.activeSelf && angle < -270 && angle > -275) {
                     Debug.Log("shut off frost masker");
 
                     m_frostMasker.SetActive(false);
@@ -218,12 +218,12 @@ public class RevolvePillar : MonoBehaviour
                 }
                 */
                 // Invisible Masker
-                if (!m_flameMasker.activeSelf && angle < -90 && angle > -95) {
+                if (!m_flameMasker.activeSelf && angle > 90 && angle < 95) {
                     Debug.Log("activated flame masker");
 
                     m_flameMasker.SetActive(true);
                 }
-                else if (m_flameMasker.activeSelf && angle > -90 && angle < -85) {
+                else if (m_flameMasker.activeSelf && angle > 270 && angle < 275) {
                     Debug.Log("shut off flame masker");
 
                     m_flameMasker.SetActive(false);
@@ -274,7 +274,7 @@ public class RevolvePillar : MonoBehaviour
             }
         }
 
-        // Update Debug Text
+                // Update Debug Text
         m_EnterStateText.text = "Enter State: " + m_enteringState.ToString();
         m_EnterTypeText.text = "Enter Type: " + m_enterType.ToString();
         m_ZoneTypeText.text = "Zone Type: " + m_zoneType.ToString();
@@ -334,14 +334,6 @@ public class RevolvePillar : MonoBehaviour
 
     public string GetID() {
         return m_id;
-    }
-
-    public int GetCycleNum() {
-        return m_completedCycles;
-    }
-
-    public bool GetPassedPrelim() {
-        return m_passedPrelimZone;
     }
 
     public EnterType GetEnterType() {

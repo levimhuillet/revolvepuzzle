@@ -969,12 +969,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_data:
   - TowerID: central
-    EnterType: 0
-    CycleNum: 1
-    PassedPrelim: 0
-    MinAngle: 0
-    MaxAngle: 360
-    ClockwiseBounds: 1
+    MinAngle: 360
+    MaxAngle: 720
 --- !u!1 &306171995
 GameObject:
   m_ObjectHideFlags: 0
@@ -2401,12 +2397,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_data:
   - TowerID: central
-    EnterType: 1
-    CycleNum: 1
-    PassedPrelim: 0
-    MinAngle: 0
-    MaxAngle: 360
-    ClockwiseBounds: 1
+    MinAngle: -720
+    MaxAngle: -360
 --- !u!1 &849674368
 GameObject:
   m_ObjectHideFlags: 0
