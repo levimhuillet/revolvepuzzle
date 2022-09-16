@@ -15,7 +15,7 @@ public class OuterSphere : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        m_renderer.sharedMaterial.SetFloat("_TowerRotation", RevolvePillar.instance.gameObject.transform.rotation.eulerAngles.y);
+        m_renderer.sharedMaterial.SetFloat("_TowerRotation", RevolvePillar.instance.GetWoundedness());
         int revolveDirInt = 0;
         if (RevolvePillar.instance.GetEnterType() == RevolvePillar.EnterType.Clockwise) {
             revolveDirInt = 1;

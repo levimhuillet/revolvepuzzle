@@ -52,8 +52,8 @@ Shader "Unlit/DefaultShade" {
 		}
 
 		float calcDistMarginAnticlockwise(vertexOutput input, float4 startPoint, float adjustedRadius, float adjustedRotation) {
-			float endX = adjustedRadius * sin(radians(adjustedRotation));
-			float endZ = adjustedRadius * cos(radians(adjustedRotation));
+			float endX = adjustedRadius * -sin(radians(adjustedRotation));
+			float endZ = adjustedRadius * -cos(radians(adjustedRotation));
 			float4 maxEndpoint = float4(endX, input.position_in_world_space.y, endZ, 1.0);
 			//float maxDist = sqrt((endX) * (endX) + (endZ + adjustedRadius) * (endZ + adjustedRadius));
 			//float vertDist = sqrt((input.position_in_world_space.x - endX) * (input.position_in_world_space.x - endX) + (input.position_in_world_space.z - endZ) * (input.position_in_world_space.z - endZ));
@@ -131,7 +131,7 @@ Shader "Unlit/DefaultShade" {
 			if (quadrant == 1)
 			{
 				float4 startPoint = float4(-adjustedRadius, input.position_in_world_space.y, 0.0, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, adjustedRotation);
+				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, 360 + adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x < 0 && input.position_in_world_space.z < 0)
@@ -146,7 +146,7 @@ Shader "Unlit/DefaultShade" {
 			else if (quadrant == 2)
 			{
 				float4 startPoint = float4(0.0, input.position_in_world_space.y, adjustedRadius, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, adjustedRotation);
+				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, 360 + adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x < 0 && input.position_in_world_space.z > 0)
@@ -161,7 +161,7 @@ Shader "Unlit/DefaultShade" {
 			else if (quadrant == 3)
 			{
 				float4 startPoint = float4(adjustedRadius, input.position_in_world_space.y, 0.0, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, adjustedRotation);
+				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, 360 + adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x > 0 && input.position_in_world_space.z > 0)
@@ -175,7 +175,7 @@ Shader "Unlit/DefaultShade" {
 			}
 			else {
 				float4 startPoint = float4(0.0, input.position_in_world_space.y, -adjustedRadius, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, adjustedRotation);
+				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, 360 + adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x > 0 && input.position_in_world_space.z < 0)
@@ -215,18 +215,16 @@ Shader "Unlit/DefaultShade" {
 			 // FRAGMENT SHADER
 			float4 frag(vertexOutput input) : COLOR
 			{
-				if (_NumCycles > 0 || (_PassedPrelim == 1 && (_TowerRotation < 0.5f || _TowerRotation > 359.5f)))
+				if (_TowerRotation > 359.5f)
+				{
+					// solidly in Flame
+					return tex2D(_FlameTex, float4(input.tex)); // Flame Color
+
+				}
+				else if (_TowerRotation < -359.5f)
 				{
 					// solidly in Frost
-					if (_RevolveDir == 1)
-					{
-						return tex2D(_FlameTex, float4(input.tex)); // Flame Color
-					}
-					// solidly in Flame
-					else
-					{
-						return tex2D(_FrostTex, float4(input.tex)); // Frost Color
-					}
+					return tex2D(_FrostTex, float4(input.tex)); // Frost Color
 				}
 				else {
 
@@ -237,10 +235,10 @@ Shader "Unlit/DefaultShade" {
 
 					// Q1
 					float4 fillAttempt = float4(0.0, 0.0, 0.0, 0.0);
-					if (_TowerRotation >= 0 && _TowerRotation < 90)
+					if ((_TowerRotation >= 0 && _TowerRotation < 90) || (_TowerRotation >= -360 && _TowerRotation < -270) )
 					{
 						// Clockwise
-						if (_RevolveDir == 1)
+						if (_TowerRotation >= 0 && _TowerRotation < 90) 
 						{
 							for (int i = 1; i <= 1; i = i + 1) {
 								fillAttempt = tryFillQuadrantClockwise(input, i, adjustedRadius, adjustedRotation);
@@ -252,7 +250,8 @@ Shader "Unlit/DefaultShade" {
 							return tex2D(_MainTex, float4(input.tex)); // Base Color
 						}
 						//Anticlockwise
-						else if (_RevolveDir == 2) {
+						else if (_TowerRotation >= -360 && _TowerRotation < -270)
+						{
 							for (int i = 4; i >= 1; i = i - 1) {
 								fillAttempt = tryFillQuadrantAnticlockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
@@ -268,10 +267,10 @@ Shader "Unlit/DefaultShade" {
 						}
 					}
 					// Q2
-					else if (_TowerRotation >= 90 && _TowerRotation < 180)
+					else if ((_TowerRotation >= 90 && _TowerRotation < 180) || (_TowerRotation >= -270 && _TowerRotation < -180))
 					{
 						// Clockwise
-						if (_RevolveDir == 1)
+						if (_TowerRotation >= 90 && _TowerRotation < 180)
 						{
 							for (int i = 1; i <= 2; i = i + 1) {
 								fillAttempt = tryFillQuadrantClockwise(input, i, adjustedRadius, adjustedRotation);
@@ -283,7 +282,8 @@ Shader "Unlit/DefaultShade" {
 							return tex2D(_MainTex, float4(input.tex)); // Base Color
 						}
 						//Anticlockwise
-						else if (_RevolveDir == 2) {
+						else if (_TowerRotation >= -270 && _TowerRotation < -180)
+						{
 							for (int i = 4; i >= 2; i = i - 1) {
 								fillAttempt = tryFillQuadrantAnticlockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
@@ -299,10 +299,10 @@ Shader "Unlit/DefaultShade" {
 						}
 					}
 					// Q3
-					else if (_TowerRotation >= 180 && _TowerRotation < 270)
+					else if ( (_TowerRotation >= 180 && _TowerRotation < 270) || (_TowerRotation >= -180 && _TowerRotation < -90) )
 					{
 						// Clockwise
-						if (_RevolveDir == 1)
+						if (_TowerRotation >= 180 && _TowerRotation < 270)
 						{
 							for (int i = 1; i <= 3; i = i + 1) {
 								fillAttempt = tryFillQuadrantClockwise(input, i, adjustedRadius, adjustedRotation);
@@ -314,7 +314,7 @@ Shader "Unlit/DefaultShade" {
 							return tex2D(_MainTex, float4(input.tex)); // Base Color
 						}
 						//Anticlockwise
-						else if (_RevolveDir == 2) {
+						else if (_TowerRotation >= -180 && _TowerRotation < -90) {
 							for (int i = 4; i >= 3; i = i - 1) {
 								fillAttempt = tryFillQuadrantAnticlockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
@@ -330,10 +330,10 @@ Shader "Unlit/DefaultShade" {
 						}
 					}
 					// Q4
-					else if (_TowerRotation >= 270 && _TowerRotation <= 360)
+					else if ( (_TowerRotation >= 270 && _TowerRotation <= 360) || (_TowerRotation >= -90 && _TowerRotation <= 0))
 					{
 						// Clockwise
-						if (_RevolveDir == 1)
+						if (_TowerRotation >= 270 && _TowerRotation <= 360)
 						{
 							for (int i = 1; i <= 4; i = i + 1) {
 								fillAttempt = tryFillQuadrantClockwise(input, i, adjustedRadius, adjustedRotation);
@@ -345,7 +345,7 @@ Shader "Unlit/DefaultShade" {
 							return tex2D(_MainTex, float4(input.tex)); // Base Color
 						}
 						//Anticlockwise
-						else if (_RevolveDir == 2) {
+						else if (_TowerRotation >= -90 && _TowerRotation <= 0) {
 							for (int i = 4; i >= 4; i = i - 1) {
 								fillAttempt = tryFillQuadrantAnticlockwise(input, i, adjustedRadius, adjustedRotation);
 								if (!all(fillAttempt == float4(0.0, 0.0, 0.0, 0.0)))
