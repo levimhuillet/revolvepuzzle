@@ -47,7 +47,17 @@ public class SceneManager : MonoBehaviour {
                         // Determine if should be set active
                         float rotation = pillar.GetWoundedness();
 
-                        bool withinAngle = (rotation >= d.MinAngle && rotation <= d.MaxAngle);
+                        float minAngle = d.MinAngle;
+                        float maxAngle = d.MaxAngle;
+
+                        // swap min and max if backwards
+                        if (minAngle > maxAngle) { // -360, -720
+                            float temp = minAngle; // temp = -360
+                            minAngle = maxAngle; // minAngle = -720
+                            maxAngle = temp; // maxAngle = -360
+                        }
+
+                        bool withinAngle = (rotation >= minAngle && rotation <= maxAngle);
 
 
                         /*

@@ -17,13 +17,7 @@ public class ConditionallyActive : MonoBehaviour
 
         public CATowerData(string id, float minAngle, float maxAngle) {
             TowerID = id;
-
-            // swap min and max if backwards
-            if (minAngle > maxAngle) {
-                float temp = minAngle;
-                minAngle = maxAngle;
-                maxAngle = temp;
-            }
+            
             MinAngle = minAngle;
             MaxAngle = maxAngle;
         }
