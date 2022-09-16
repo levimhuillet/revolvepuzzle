@@ -9,19 +9,22 @@ public class RevolvePillar : MonoBehaviour
 
     // Note: EnterX refers to things from the player camera perspective, such as unveiling a new zone 180 degrees away.
     // ZoneType refers to the zone the player is actively standing in
-    private enum EnterState {
+    private enum EnterState
+    {
         Frost,
         Flame,
         Generic
     }
 
-    public enum EnterType {
+    public enum EnterType
+    {
         Clockwise,
         Anticlockwise,
         None
     }
 
-    public enum ZoneType {
+    public enum ZoneType
+    {
         Frost,
         Flame,
         Generic
@@ -76,9 +79,6 @@ public class RevolvePillar : MonoBehaviour
         m_enterType = EnterType.None;
         m_zoneType = ZoneType.Generic;
 
-        m_completedCycles = 0;
-        m_passedPrelimZone = false;
-
         m_frostMasker.SetActive(false);
         m_flameMasker.SetActive(false);
 
@@ -88,8 +88,7 @@ public class RevolvePillar : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update() {
         Vector3 targetPosition = Player.instance.transform.position;
         targetPosition.y = this.transform.position.y;
 
@@ -109,16 +108,11 @@ public class RevolvePillar : MonoBehaviour
     }
 
     private void UpdateCycleState(float angle) {
-        /*
-        float clockwiseInner = SceneManager.GenericAngleThreshold * 2;
-        float clockwiseOuter = SceneManager.GenericAngleThreshold;
-        float aclockwiseInner = 360 - SceneManager.GenericAngleThreshold * 2;
-        float aclockwiseOuter = 360 - SceneManager.GenericAngleThreshold;
-        */
-
         if (m_prevAngle == m_currAngle) {
             return;
         }
+
+        // TODO: below should be deprecated, can be scrapped
 
         // Check if enter from generic
         if (m_enteringState == EnterState.Generic) {
@@ -159,31 +153,6 @@ public class RevolvePillar : MonoBehaviour
         if (m_enteringState != EnterState.Generic) {
             // within Frost:
             if (m_enterType == EnterType.Anticlockwise) {
-                /*
-                // check if entered threshold zone
-                if (angle <= aclockwiseOuter && angle >= aclockwiseInner) {
-                    // check if entered from enter (versus staying within zone)
-                    if (m_prevAngle > aclockwiseOuter) {
-                        // enter
-                        m_completedCycles++;
-                        m_passedPrelimZone = false;
-                        return;
-                    }
-                    // else remain within zone
-                }
-                else if (angle > aclockwiseOuter && m_prevAngle <= aclockwiseOuter && m_prevAngle >= aclockwiseInner) {
-                    m_completedCycles--;
-                    m_passedPrelimZone = true;
-                    return;
-                }
-                // check if entered prelim zone
-                else if (angle <= clockwiseInner && angle >= clockwiseOuter) {
-                    m_passedPrelimZone = true;
-                }
-                else if (angle > clockwiseInner && angle < 90) {
-                    m_passedPrelimZone = false;
-                }
-                */
                 // Invisible Masker
                 if (!m_frostMasker.activeSelf && angle > -90 && angle < -85) {
                     Debug.Log("activated frost masker");
@@ -198,31 +167,6 @@ public class RevolvePillar : MonoBehaviour
             }
             // within Flame:
             else if (m_enterType == EnterType.Clockwise) {
-                /*
-                // check if entered threshold zone
-                if (angle >= clockwiseOuter && angle <= clockwiseInner) {
-                    // check if entered from enter (versus staying within zone)
-                    if (m_prevAngle < clockwiseOuter) {
-                        // enter
-                        m_completedCycles++;
-                        m_passedPrelimZone = false;
-                        return;
-                    }
-                    // else remain within zone
-                }
-                else if (angle < clockwiseOuter && m_prevAngle >= clockwiseOuter && m_prevAngle <= clockwiseInner) {
-                    m_completedCycles--;
-                    m_passedPrelimZone = true;
-                    return;
-                }
-                // check if entered prelim zone
-                else if (angle >= aclockwiseInner && angle <= aclockwiseOuter) {
-                    m_passedPrelimZone = true;
-                }
-                else if (angle < aclockwiseInner && angle > 270) {
-                    m_passedPrelimZone = false;
-                }
-                */
                 // Invisible Masker
                 if (!m_flameMasker.activeSelf && angle > 90 && angle < 95) {
                     Debug.Log("activated flame masker");
@@ -239,43 +183,23 @@ public class RevolvePillar : MonoBehaviour
 
         //update ZoneType
         // if in a region that could update and moving
-        if (m_completedCycles == 0 && m_prevAngle != m_currAngle) {
-            if (angle >= 180 && angle <= 180 + SceneManager.GenericAngleThreshold) {
-                // check for enter Flame or leave Frost
-                // enter Flame
-                if (m_enterType == EnterType.Clockwise) {
-                    if (m_zoneType == ZoneType.Generic) {
-                        Debug.Log("enter Flame");
-
-                        m_zoneType = ZoneType.Flame;
-                    }
-                }
-                else {
-                    // leave Frost
-                    if (m_zoneType == ZoneType.Frost) {
-                        Debug.Log("leave Frost");
-
-                        m_zoneType = ZoneType.Generic;
-                    }
+        if (m_prevAngle != m_currAngle) {
+            if (angle >= 180) {
+                // In Flame Region
+                if (m_zoneType != ZoneType.Flame) {
+                    m_zoneType = ZoneType.Flame;
                 }
             }
-            else if (angle >= -180 - SceneManager.GenericAngleThreshold && angle <= -180) {
-                // check for enter Frost or leave Flame
-                // enter Frost
-                if (m_enterType == EnterType.Anticlockwise) {
-                    if (m_zoneType == ZoneType.Generic) {
-                        Debug.Log("enter Frost");
-
-                        m_zoneType = ZoneType.Frost;
-                    }
+            else if (angle <= -180) {
+                // In Frost Region
+                if (m_zoneType != ZoneType.Frost) {
+                    m_zoneType = ZoneType.Frost;
                 }
-                else {
-                    // leave Flame
-                    if (m_zoneType == ZoneType.Flame) {
-                        Debug.Log("leave Flame");
-
-                        m_zoneType = ZoneType.Generic;
-                    }
+            }
+            else {
+                // In Generic Region
+                if (m_zoneType != ZoneType.Generic) {
+                    m_zoneType = ZoneType.Generic;
                 }
             }
         }

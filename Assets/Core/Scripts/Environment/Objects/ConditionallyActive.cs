@@ -88,183 +88,29 @@ public class ConditionallyActive : MonoBehaviour
         // may need to project object, then calculate. Otherwise keep object at exact same angle as player
         // TODO: check for prelim zone edge cases
 
+
+        minAngle = objLookAtAngle - 180;
+        maxAngle = objLookAtAngle + 180;
+
         switch (pillar.GetZoneType()) {
             case RevolvePillar.ZoneType.Generic:
-                // in a generic zone
-
-                if (objLookAtAngle <= 180) {
-                    // if less than or equal to 180:
-                    // objLookAtAngle to 360 in Flame(clock) cycle 0
-                    minAngle = objLookAtAngle;
-                    maxAngle = 360;
-                    Debug.Log("Generate 1: min: " + minAngle + " || max: " + maxAngle);
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    // 0 to (180 - objLookAtAngle) in Flame(clock) cycle 0
-                    minAngle = 0;
-                    maxAngle = 180 - objLookAtAngle;
-                    Debug.Log("Generate 2: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    // (180 - objLookAtAngle) to 360 in Flame(clock) cycle 1
-                    minAngle = 180 - objLookAtAngle;
-                    maxAngle = 360;
-                    Debug.Log("Generate 3: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    // TODO: more cases if there are more than one max cycle
-                }
-                else {
-                    // if greater than 180:
-                    // objLookAngle to (360 - m_genericThreshold) in Frost(anti) cycle 0
-                    minAngle = objLookAtAngle;
-                    maxAngle = 360 - SceneManager.GenericAngleThreshold;
-                    Debug.Log("Generate 4: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    // (360 - m_genericThreshold) to 360 in None cycle 0
-                    minAngle = 360 - SceneManager.GenericAngleThreshold;
-                    maxAngle = 360;
-                    Debug.Log("Generate 5: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    // 0 to (objLookAngle - 180) in None cycle 0
-                    minAngle = 0;
-                    maxAngle = objLookAtAngle - 180;
-                    Debug.Log("Generate 6: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-                }
-
+                // do nothing additional
                 break;
             case RevolvePillar.ZoneType.Frost:
-                // in frost zone
-
-                if (objLookAtAngle <= 180) {
-                    // if less than or equal to 180:
-                    // objLookAngle to (360 - m_genericThreshold) in Frost(anti) cycle 0
-                    minAngle = objLookAtAngle;
-                    maxAngle = Mathf.Min(objLookAtAngle + 180, 360 - SceneManager.GenericAngleThreshold);
-                    Debug.Log("Generate 7: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    if (objLookAtAngle + 180 > 360 - SceneManager.GenericAngleThreshold) {
-                        // (360 - m_genericThreshold) to (objLookAngle + 180) in None cycle 0
-                        minAngle = 360 - SceneManager.GenericAngleThreshold;
-                        maxAngle = objLookAtAngle + 180;
-                        Debug.Log("Generate 8: min: " + minAngle + " || max: " + maxAngle);
-
-                        newData = new CATowerData(towerID, minAngle, maxAngle);
-                        AddData(newData);
-                    }
-
-                    // TODO: more cases here if more than one max cycle
-                }
-                else {
-                    // if greater than 180:
-                    // objLookAngle to (360 - m_genericThreshold) in Frost(anti) cycle 1
-                    minAngle = objLookAtAngle;
-                    maxAngle = 360 - SceneManager.GenericAngleThreshold;
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    // (360 - m_genericThreshold) to 360 in Frost(anti) cycle 0
-                    minAngle = 360 - SceneManager.GenericAngleThreshold;
-                    maxAngle = 360;
-                    Debug.Log("Generate 9: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    // 0 to (objLookAngle - 180) in Frost(anti) cycle 0
-                    minAngle = 0;
-                    maxAngle = objLookAtAngle - 180;
-                    Debug.Log("Generate 10: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    // TODO: more cases here if more than one max cycle
-                }
-
+                // extend into frost
+                minAngle -= 360;
                 break;
             case RevolvePillar.ZoneType.Flame:
-                // in flame zone
-
-                if (objLookAtAngle <= 180) {
-                    // if less than or equal to 180:
-                    // objLookAngle to 360 in Flame(clock) cycle 1
-                    minAngle = objLookAtAngle;
-                    maxAngle = 360;
-                    Debug.Log("Generate 11: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    // TODO: more cases here if more than one max cycle
-                }
-                else {
-                    // if greater than 180:
-                    // objLookAngle to 360 in Flame(clock) cycle 0
-                    minAngle = objLookAtAngle;
-                    maxAngle = 360;
-                    Debug.Log("Generate 12: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    /*
-                    // 0 to (objLookAngle - 180) in Flame(clock) cycle 0
-                    enterType = RevolvePillar.EnterType.Clockwise;
-                    cycleNum = 0;
-                    minAngle = 0;
-                    maxAngle = Mathf.Min(objLookAtAngle - 180, SceneManager.GenericAngleThreshold);
-                    Debug.Log("Generate 13: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, enterType, cycleNum, passedPrelim, minAngle, maxAngle, clockwiseBounds);
-                    AddData(newData);
-                    */
-
-                    // (objLookAngle - 180) to (360 - m_genericThreshold) (since only one max cycle) in Flame(clock) cycle 1
-                    minAngle = Mathf.Min(objLookAtAngle - 180, SceneManager.GenericAngleThreshold);
-                    maxAngle = 360 - SceneManager.GenericAngleThreshold;
-                    Debug.Log("Generate 14: min: " + minAngle + " || max: " + maxAngle);
-
-
-                    newData = new CATowerData(towerID, minAngle, maxAngle);
-                    AddData(newData);
-
-                    // TODO: more cases here if more than one max cycle
-                }
-
+                // extend into flame
+                maxAngle += 360;
                 break;
             default:
                 break;
         }
+
+        Debug.Log("Generate 1: min: " + minAngle + " || max: " + maxAngle);
+
+        newData = new CATowerData(towerID, minAngle, maxAngle);
+        AddData(newData);
     }
 }

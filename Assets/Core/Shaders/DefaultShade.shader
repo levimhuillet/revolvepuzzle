@@ -7,10 +7,7 @@ Shader "Unlit/DefaultShade" {
 		_FrostTex("Frost (RGB)", 2D) = "white" {} // Regular object texture 
 		_FlameTex("Flame (RGB)", 2D) = "white" {} // Regular object texture 
 		_TowerRotation("Tower Rotation", float) = 0 // The rotation of the tower - will be set by script
-		_RevolveDir("Revolve Dir", int) = 0 // Whether moving Clockwise (1) or Anticlockwise (2) around the tower - will be set by script
 		_Radius("Radius", float) = 0 // radius of the sphere
-		_NumCycles("Num Cycles", int) = 0 // times around
-		_PassedPrelim("Passed Prelim", int) = 0 // 1 if in zone, 0 if not
 	}
 		CGINCLUDE
 		#pragma vertex vert
@@ -33,13 +30,10 @@ Shader "Unlit/DefaultShade" {
 		uniform sampler2D _FrostTex;
 		uniform sampler2D _FlameTex;
 		uniform float _TowerRotation;
-		uniform int _RevolveDir;
 		uniform float _Radius;
-		uniform int _NumCycles;
-		uniform int _PassedPrelim;
 		const float pi = 3.141592653589793238462;
 
-		float calcDistMarginClockwise(vertexOutput input, float4 startPoint, float adjustedRadius, float adjustedRotation) {
+		float calcDistMargin(vertexOutput input, float4 startPoint, float adjustedRadius, float adjustedRotation) {
 			float endX = adjustedRadius * -sin(radians(adjustedRotation));
 			float endZ = adjustedRadius * -cos(radians(adjustedRotation));
 			float4 maxEndpoint = float4(endX, input.position_in_world_space.y, endZ, 1.0);
@@ -51,24 +45,12 @@ Shader "Unlit/DefaultShade" {
 			return maxDist - vertDist;
 		}
 
-		float calcDistMarginAnticlockwise(vertexOutput input, float4 startPoint, float adjustedRadius, float adjustedRotation) {
-			float endX = adjustedRadius * -sin(radians(adjustedRotation));
-			float endZ = adjustedRadius * -cos(radians(adjustedRotation));
-			float4 maxEndpoint = float4(endX, input.position_in_world_space.y, endZ, 1.0);
-			//float maxDist = sqrt((endX) * (endX) + (endZ + adjustedRadius) * (endZ + adjustedRadius));
-			//float vertDist = sqrt((input.position_in_world_space.x - endX) * (input.position_in_world_space.x - endX) + (input.position_in_world_space.z - endZ) * (input.position_in_world_space.z - endZ));
-			float maxDist = (endX) * (endX) + (endZ + adjustedRadius) * (endZ + adjustedRadius);
-			float vertDist = (input.position_in_world_space.x - endX) * (input.position_in_world_space.x - endX) + (input.position_in_world_space.z - endZ) * (input.position_in_world_space.z - endZ);
-
-			return maxDist - vertDist;
-		}
-
 		float4 tryFillQuadrantClockwise(vertexOutput input, int quadrant, float adjustedRadius, float adjustedRotation)
 		{
 			if (quadrant == 1)
 			{
 				float4 startPoint = float4(0.0, input.position_in_world_space.y, -adjustedRadius, 1.0);
-				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius, adjustedRotation);
+				float distMargin = calcDistMargin(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 					&& input.position_in_world_space.x < 0 && input.position_in_world_space.z < 0)
@@ -83,7 +65,7 @@ Shader "Unlit/DefaultShade" {
 			else if (quadrant == 2)
 			{
 				float4 startPoint = float4(-adjustedRadius, input.position_in_world_space.y, 0.0, 1.0);
-				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius, adjustedRotation);
+				float distMargin = calcDistMargin(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x < 0 && input.position_in_world_space.z > 0)
@@ -98,7 +80,7 @@ Shader "Unlit/DefaultShade" {
 			else if (quadrant == 3)
 			{
 				float4 startPoint = float4(0.0, input.position_in_world_space.y, adjustedRadius, 1.0);
-				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius, adjustedRotation);
+				float distMargin = calcDistMargin(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x > 0 && input.position_in_world_space.z > 0)
@@ -112,7 +94,7 @@ Shader "Unlit/DefaultShade" {
 			}
 			else {
 				float4 startPoint = float4(adjustedRadius, input.position_in_world_space.y, 0.0, 1.0);
-				float distMargin = calcDistMarginClockwise(input, startPoint, adjustedRadius, adjustedRotation);
+				float distMargin = calcDistMargin(input, startPoint, adjustedRadius, adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x > 0 && input.position_in_world_space.z < 0)
@@ -131,7 +113,7 @@ Shader "Unlit/DefaultShade" {
 			if (quadrant == 1)
 			{
 				float4 startPoint = float4(-adjustedRadius, input.position_in_world_space.y, 0.0, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, 360 + adjustedRotation);
+				float distMargin = calcDistMargin(input, startPoint, adjustedRadius, 360 + adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x < 0 && input.position_in_world_space.z < 0)
@@ -146,7 +128,7 @@ Shader "Unlit/DefaultShade" {
 			else if (quadrant == 2)
 			{
 				float4 startPoint = float4(0.0, input.position_in_world_space.y, adjustedRadius, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, 360 + adjustedRotation);
+				float distMargin = calcDistMargin(input, startPoint, adjustedRadius, 360 + adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x < 0 && input.position_in_world_space.z > 0)
@@ -161,7 +143,7 @@ Shader "Unlit/DefaultShade" {
 			else if (quadrant == 3)
 			{
 				float4 startPoint = float4(adjustedRadius, input.position_in_world_space.y, 0.0, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, 360 + adjustedRotation);
+				float distMargin = calcDistMargin(input, startPoint, adjustedRadius, 360 + adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x > 0 && input.position_in_world_space.z > 0)
@@ -175,7 +157,7 @@ Shader "Unlit/DefaultShade" {
 			}
 			else {
 				float4 startPoint = float4(0.0, input.position_in_world_space.y, -adjustedRadius, 1.0);
-				float distMargin = calcDistMarginAnticlockwise(input, startPoint, adjustedRadius, 360 + adjustedRotation);
+				float distMargin = calcDistMargin(input, startPoint, adjustedRadius, 360 + adjustedRotation);
 
 				if (distMargin > 0
 				&& input.position_in_world_space.x > 0 && input.position_in_world_space.z < 0)
