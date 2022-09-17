@@ -34,6 +34,11 @@ public class SceneManager : MonoBehaviour {
         }
 
         foreach (ConditionallyActive cActive in m_cActives) {
+            if (cActive.IsPervasive()) {
+                cActive.MarkedActive = true;
+                continue;
+            }
+
             cActive.MarkedActive = false;
 
             List<ConditionallyActive.CATowerData> data = cActive.GetData();

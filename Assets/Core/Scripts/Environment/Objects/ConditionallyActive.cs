@@ -23,6 +23,8 @@ public class ConditionallyActive : MonoBehaviour
         }
     }
 
+    [SerializeField] private bool m_isPervasive;
+
     public bool MarkedActive { get; set; }
 
     [SerializeField]
@@ -51,6 +53,15 @@ public class ConditionallyActive : MonoBehaviour
         m_data.Add(data);
     }
 
+    public bool IsPervasive() {
+        return m_isPervasive;
+    }
+
+    public void SetPervasive(bool isPervasive) {
+        // change material?
+        m_isPervasive = isPervasive;
+    }
+
     public void HandleDrop() {
         // set cActive data
         SetNewCActiveData();
@@ -59,19 +70,10 @@ public class ConditionallyActive : MonoBehaviour
     }
 
     private void SetNewCActiveData() {
-        // TODO: this
 
         // generate key points with each tower
         foreach (RevolvePillar pillar in SceneManager.instance.GetPillars()) {
-            // get current object angle and zone (enter type)
-
-            // if player is in original zone, appear
-            //GenerateNewCATowerData(RevolvePillar.EnterType.None, pillar);
-
-            // generate clockwise-ward data
-            GenerateNewCATowerData(pillar);
-
-            // generate anticlockwise-ward data
+            // generate new data
             GenerateNewCATowerData(pillar);
         }
     }
@@ -84,10 +86,6 @@ public class ConditionallyActive : MonoBehaviour
 
         float objLookAtAngle = pillar.GetWoundedness(); // TODO: fix simulationPillar
         CATowerData newData;
-        // TODO: test edge case where object is placed on different zone than player's angle
-        // may need to project object, then calculate. Otherwise keep object at exact same angle as player
-        // TODO: check for prelim zone edge cases
-
 
         minAngle = objLookAtAngle - 180;
         maxAngle = objLookAtAngle + 180;
@@ -107,8 +105,6 @@ public class ConditionallyActive : MonoBehaviour
             default:
                 break;
         }
-
-        Debug.Log("Generate 1: min: " + minAngle + " || max: " + maxAngle);
 
         newData = new CATowerData(towerID, minAngle, maxAngle);
         AddData(newData);
