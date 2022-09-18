@@ -42,6 +42,11 @@ public class RevolvePillar : MonoBehaviour
     private float m_windAngle; // pillar's woundedness
     private bool m_firstScene;
 
+    private float m_flameTimer;
+    private float m_frostTimer;
+
+    private static float TIMER_TIME = 3f;
+
     #region Debug UI
 
     [SerializeField] private TMP_Text m_EnterStateText;
@@ -82,6 +87,8 @@ public class RevolvePillar : MonoBehaviour
         m_frostMasker.SetActive(false);
         m_flameMasker.SetActive(false);
 
+        m_flameTimer = m_frostTimer = 0;
+
         EventManager.OnEnterFrost.AddListener(HandleEnterFrost);
         EventManager.OnEnterFlame.AddListener(HandleEnterFlame);
         EventManager.OnExitRealms.AddListener(HandleExitRealms);
@@ -97,14 +104,39 @@ public class RevolvePillar : MonoBehaviour
         m_prevAngle = m_currAngle;
         m_currAngle = CalcEulerRotation();
 
-        if (Between(m_prevAngle, 350, 360) && Between(m_currAngle, 0, 10)) {
+        if (Between(Mathf.RoundToInt(m_prevAngle), 350, 360) && Between(Mathf.RoundToInt(m_currAngle), 0, 10) && m_flameTimer == 0) {
             m_windAngle += 360;
+            StartCoroutine(WaitThreshold(ZoneType.Flame));
+            m_frostTimer = 0;
         }
-        else if (Between(m_prevAngle, 0, 10) && Between(m_currAngle, 350, 360)) {
+        else if (Between(Mathf.RoundToInt(m_prevAngle), 0, 10) && Between(Mathf.RoundToInt(m_currAngle), 350, 360) && m_frostTimer == 0) {
             m_windAngle -= 360;
+            StartCoroutine(WaitThreshold(ZoneType.Frost));
+            m_flameTimer = 0;
         }
 
         UpdateCycleState(m_currAngle + m_windAngle);
+    }
+
+    private IEnumerator WaitThreshold(ZoneType type) {
+        if (type == ZoneType.Flame) {
+            m_flameTimer = TIMER_TIME;
+            while (m_flameTimer > 0) {
+                m_flameTimer -= Time.deltaTime;
+                m_flameTimer = Mathf.Max(0, m_flameTimer);
+                yield return null;
+            }
+            m_flameTimer = 0;
+        }
+        else {
+            m_frostTimer = TIMER_TIME;
+            while (m_frostTimer > 0) {
+                m_frostTimer -= Time.deltaTime;
+                m_frostTimer = Mathf.Max(0, m_frostTimer);
+                yield return null;
+            }
+            m_frostTimer = 0;
+        }
     }
 
     private void UpdateCycleState(float angle) {
